@@ -135,6 +135,71 @@ export function initWiki(map, config) {
 
   const history = [];
 
+  // ── Cross-reference registry (all entry titles → {type, slug}) ──────────────
+  let registryPromise = null;
+  function ensureRegistry() {
+    if (!registryPromise) {
+      const cats = [['locations', 'location'], ['countries', 'country'], ['factions', 'faction'], ['characters', 'character']];
+      registryPromise = Promise.all(cats.map(([dir, type]) =>
+        fetch(`data/${dir}/index.json`)
+          .then(r => r.ok ? r.json() : [])
+          .then(list => list.map(e => ({ title: e.title || e.id, type, slug: e.id })))
+          .catch(() => [])
+      )).then(arr => arr.flat().filter(e => e.title));
+    }
+    return registryPromise;
+  }
+
+  // Turn any mention of another entry's title in `root` into a link to it.
+  async function linkifyBody(root, selfType, selfSlug) {
+    if (!root) return;
+    const entries = await ensureRegistry();
+    const byTitle = new Map();
+    const titles = [];
+    for (const e of entries) {
+      if (e.type === selfType && e.slug === selfSlug) continue; // don't self-link
+      const key = e.title.toLowerCase();
+      if (!byTitle.has(key)) { byTitle.set(key, e); titles.push(e.title); }
+    }
+    if (!titles.length) return;
+    titles.sort((a, b) => b.length - a.length); // match longer names first
+    const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp(`\\b(${titles.map(esc).join('|')})\\b`, 'gi');
+
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+      acceptNode(node) {
+        if (!node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        for (let p = node.parentNode; p && p !== root; p = p.parentNode)
+          if (p.tagName === 'A') return NodeFilter.FILTER_REJECT; // already a link
+        return NodeFilter.FILTER_ACCEPT;
+      },
+    });
+    const textNodes = [];
+    while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+    for (const node of textNodes) {
+      const text = node.nodeValue;
+      re.lastIndex = 0;
+      if (!re.test(text)) continue;
+      re.lastIndex = 0;
+      const frag = document.createDocumentFragment();
+      let last = 0, m;
+      while ((m = re.exec(text))) {
+        const entry = byTitle.get(m[0].toLowerCase());
+        if (!entry) continue;
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        const a = document.createElement('a');
+        a.className = 'wiki-xref';
+        a.textContent = m[0];
+        a.addEventListener('click', () => wiki.open(entry.type, entry.slug, entry.title));
+        frag.appendChild(a);
+        last = m.index + m[0].length;
+      }
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    }
+  }
+
   const wiki = {
     panelOpen() {
       panel.classList.add('open');
@@ -172,6 +237,7 @@ export function initWiki(map, config) {
           if (prev) wiki._render(prev.type, prev.slug);
           else wiki.showHome();
         });
+        linkifyBody(content.querySelector('.wiki-body'), type, slug);
       } catch (e) {
         content.innerHTML = `<div class="wiki-body"><p style="color:var(--text-dim)">Entry not found.</p></div>`;
       }
