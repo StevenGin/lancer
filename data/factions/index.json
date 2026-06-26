@@ -1,6 +1,6 @@
 [
-  { "id": "caladrius", "title": "Caladrius", "tags": ["orbital", "industrial", "starfaring"] },
-  { "id": "concord", "title": "Concord of Free States", "tags": ["agricultural", "democratic"] },
-  { "id": "iron-accord", "title": "Iron Accord", "tags": ["frontier", "industrial"] },
-  { "id": "highland-league", "title": "Highland League", "tags": ["mountain", "frontier"] }
+  { "id": "caladrius", "title": "Caladrius", "tags": ["orbital", "neutral"] },
+  { "id": "dsu", "title": "DSU", "tags": ["secretive", "corporate"] },
+  { "id": "gsl", "title": "GSL", "tags": ["syndicate", "supply", "vice"] },
+  { "id": "vlc", "title": "VLC", "tags": ["military", "industrial", "paracausal"] }
 ]

@@ -97,13 +97,16 @@ export async function initGlobe(container, config) {
     return ring;
   }
 
-  // ── Territory lookup (warped for organic, non-rigid shapes) ──────────────────
-  const warpA = makeNoise(211), warpB = makeNoise(307);
+  // ── Territory lookup (heavily warped for organic, non-rigid shapes) ──────────
+  const warpA = makeNoise(211), warpB = makeNoise(307), warpC = makeNoise(409);
+  const edgeN = makeNoise(523), iceN = makeNoise(617);
   function sampleZone(col, row) {
-    // Warp the sampling position with low-frequency noise so faction/terrain
-    // boundaries undulate instead of following rigid rectangles.
-    const wx = (warpA(col * 0.16, row * 0.16, 2) - 0.5) * 6.5;
-    const wy = (warpB(col * 0.16, row * 0.16, 2) - 0.5) * 5.0;
+    // Two-scale domain warp: a broad undulation plus a finer jitter so no
+    // boundary (especially the row-aligned east-west ones) stays straight.
+    const wx = (warpA(col * 0.15, row * 0.15, 2) - 0.5) * 7.5
+             + (warpC(col * 0.55, row * 0.55, 2) - 0.5) * 3.2;
+    const wy = (warpB(col * 0.15, row * 0.15, 2) - 0.5) * 6.5
+             + (warpC(col * 0.55 + 9, row * 0.55 + 9, 2) - 0.5) * 3.0;
     const sc = col + wx, sr = row + wy;
     let entry = { terrain: 'ocean', faction: null };
     for (const z of zones) {
@@ -112,19 +115,40 @@ export async function initGlobe(container, config) {
     }
     return entry;
   }
-  // Latitude bands: ice hexes near the poles, then a ring of open water that
-  // separates the ice from the continents, then the content zone.
-  const ICE_LAT = 44;    // |lat| >= 44  → white ice hexes
-  const MOAT_LAT = 37;   // 37..44       → forced ocean (separates ice from land)
+  // Latitude bands, with a per-column wobble so the ice / water boundary is not
+  // a perfectly straight line of latitude.
+  const ICE_LAT = 43;    // base |lat| for ice
+  const MOAT_LAT = 36;   // base |lat| for the separating water ring
   const lookup = new Map();
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       const lat = Math.abs(hexCenter(col, row)[1]);
-      if (lat >= ICE_LAT) lookup.set(`${col},${row}`, { terrain: 'ice', faction: null });
-      else if (lat >= MOAT_LAT) lookup.set(`${col},${row}`, { terrain: 'ocean', faction: null });
+      const wob = (iceN(col * 0.45, row * 0.12, 2) - 0.5) * 9; // wavy cap edge
+      if (lat >= ICE_LAT + wob) lookup.set(`${col},${row}`, { terrain: 'ice', faction: null });
+      else if (lat >= MOAT_LAT + wob * 0.7) lookup.set(`${col},${row}`, { terrain: 'ocean', faction: null });
       else lookup.set(`${col},${row}`, sampleZone(col, row));
     }
   }
+
+  // Coastal erosion: nibble a fraction of land hexes that touch ocean so coasts
+  // (and continents) lose a hex here and there — no perfectly clean edges.
+  const ODD = r => r % 2 === 1;
+  function rawNeighbours(col, row) {
+    const o = ODD(row);
+    return [[col+1,row],[col+(o?1:0),row+1],[col+(o?0:-1),row+1],
+            [col-1,row],[col+(o?0:-1),row-1],[col+(o?1:0),row-1]];
+  }
+  const toErode = [];
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const d = lookup.get(`${col},${row}`);
+      if (d.terrain === 'ocean' || d.terrain === 'ice') continue;
+      const touchesOcean = rawNeighbours(col, row)
+        .some(([c, r]) => (lookup.get(`${c},${r}`)?.terrain ?? 'ocean') === 'ocean');
+      if (touchesOcean && edgeN(col * 0.9, row * 0.9, 2) > 0.66) toErode.push(`${col},${row}`);
+    }
+  }
+  for (const k of toErode) lookup.set(k, { terrain: 'ocean', faction: null });
 
   // ── Faction centroids (for labels) ────────────────────────────────────────
   const factionCentroids = new Map();
@@ -150,10 +174,11 @@ export async function initGlobe(container, config) {
   const noiseA = makeNoise(73);
   const noiseB = makeNoise(131);
 
-  // Pre-render a painterly noise tile once; applied as a soft-light overlay
-  // (far cheaper than a per-pixel loop over the full 8K texture).
+  // Pre-render a painterly noise tile once; applied as a soft-light overlay.
+  // Horizontally TILEABLE: x is sampled around a circle (cos/sin) so the left and
+  // right edges match, which is required for the seamless east-west wrap.
   const noiseTile = (() => {
-    const w = 1536, h = 768;
+    const w = 1536, h = 768, rad = 9;
     const c = document.createElement('canvas');
     c.width = w; c.height = h;
     const x = c.getContext('2d');
@@ -161,7 +186,9 @@ export async function initGlobe(container, config) {
     const d = img.data;
     for (let j = 0; j < h; j++) {
       for (let i = 0; i < w; i++) {
-        const n = noiseB(i * 0.05, j * 0.05, 4) * 0.6 + noiseA(i * 0.014, j * 0.014, 2) * 0.4;
+        const ang = (i / w) * 2 * Math.PI;
+        const cx = Math.cos(ang) * rad + 20, cz = Math.sin(ang) * rad + 40;
+        const n = noiseB(cx, j * 0.05, 3) * 0.55 + noiseA(cz, j * 0.05 + 15, 3) * 0.45;
         const g = Math.max(0, Math.min(255, 128 + (n - 0.5) * 165));
         const k = (j * w + i) * 4;
         d[k] = d[k + 1] = d[k + 2] = g; d[k + 3] = 255;
@@ -171,9 +198,15 @@ export async function initGlobe(container, config) {
     return c;
   })();
 
+  // Seam helpers: wrap a column index and read wrapped territory data so we can
+  // render a margin of columns past both edges, tiling the map east-west.
+  const MARGIN = 2;
+  const wrapCol = c => ((c % COLS) + COLS) % COLS;
+  const cell = (c, r) => (r < 0 || r >= ROWS) ? null : lookup.get(`${wrapCol(c)},${r}`);
+
   // Per-hex colour with individual noise variation (makes each hex visually distinct).
   function hexBaseColor(col, row, rgb) {
-    const n = noiseA(col * 1.5, row * 1.5, 2);
+    const n = noiseA(wrapCol(col) * 1.5, row * 1.5, 2);
     const v = 0.82 + 0.38 * n;
     return rgb.map(c => Math.min(255, Math.round(c * v)));
   }
@@ -223,23 +256,27 @@ export async function initGlobe(container, config) {
     ctx.fillStyle = oceanGrad;
     ctx.fillRect(0, 0, TW, TH);
 
+    // Columns are iterated with a margin past both edges (using wrapped data) so
+    // the texture tiles seamlessly east-west.
+    const C0 = -MARGIN, C1 = COLS + MARGIN;
+
     // ── Land hex fills (each with per-hex noise variation) ──────────────
     for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const d = lookup.get(`${col},${row}`);
-        if (d.terrain === 'ocean') continue;
+      for (let col = C0; col < C1; col++) {
+        const d = cell(col, row);
+        if (!d || d.terrain === 'ocean') continue;
         const rgb = (political && d.faction) ? FACTION_COLOR[d.faction] : TERRAIN_COLOR[d.terrain];
         fillHex(ctx, col, row, rgb || TERRAIN_COLOR.grassland);
       }
     }
 
-    // ── Painterly noise overlay (soft-light, cheap) ─────────────────────
+    // ── Painterly noise overlay (soft-light; tile is horizontally seamless) ─
     ctx.save();
     ctx.globalCompositeOperation = 'soft-light';
     ctx.globalAlpha = 0.8;
     ctx.drawImage(noiseTile, 0, 0, TW, TH);
-    ctx.globalAlpha = 0.35;
-    ctx.drawImage(noiseTile, TW * 0.13, TH * 0.07, TW, TH); // second offset octave
+    ctx.globalAlpha = 0.32;
+    ctx.drawImage(noiseTile, 0, TH * 0.31, TW, TH); // vertical-only second octave
     ctx.restore();
 
     // ── Hex grid outlines (thin, dark – shows the hex character) ─────────
@@ -248,9 +285,9 @@ export async function initGlobe(container, config) {
     ctx.lineJoin = 'round';
     ctx.beginPath();
     for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const d = lookup.get(`${col},${row}`);
-        if (d.terrain === 'ocean') continue; // skip ocean hexes
+      for (let col = C0; col < C1; col++) {
+        const d = cell(col, row);
+        if (!d || d.terrain === 'ocean') continue;
         const ring = hexPolygon(col, row);
         ring.forEach(([lng, lat], i) => {
           const x = lngToX(lng), y = latToY(lat);
@@ -266,12 +303,12 @@ export async function initGlobe(container, config) {
     ctx.lineWidth = 4 * SCALE;
     ctx.beginPath();
     for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const me = lookup.get(`${col},${row}`);
-        if (me.terrain === 'ocean') continue;
+      for (let col = C0; col < C1; col++) {
+        const me = cell(col, row);
+        if (!me || me.terrain === 'ocean') continue;
         const ring = hexPolygon(col, row);
         for (const { nc, nr, ea, eb } of allNeighbours(col, row)) {
-          const nd = lookup.get(`${nc},${nr}`);
+          const nd = cell(nc, nr);
           if (!nd || nd.terrain === 'ocean') {
             ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
             ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
@@ -287,11 +324,12 @@ export async function initGlobe(container, config) {
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        if (lookup.get(`${col},${row}`).terrain !== 'mountain') continue;
+      for (let col = C0; col < C1; col++) {
+        if (cell(col, row)?.terrain !== 'mountain') continue;
         const [lng, lat] = hexCenter(col, row);
         const x = lngToX(lng), y = latToY(lat);
-        const s = (18 + 10 * noiseB(col * 1.7, row * 1.7, 1)) * SCALE;
+        const wc = wrapCol(col);
+        const s = (18 + 10 * noiseB(wc * 1.7, row * 1.7, 1)) * SCALE;
         ctx.beginPath();
         ctx.moveTo(x - s, y + s * 0.55);
         ctx.lineTo(x,     y - s * 0.75);
@@ -308,16 +346,15 @@ export async function initGlobe(container, config) {
       const seen = new Set();
       const path2 = new Path2D();
       for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-          const me = lookup.get(`${col},${row}`).faction;
+        for (let col = C0; col < C1; col++) {
+          const me = cell(col, row)?.faction;
           if (!me) continue;
           const ring = hexPolygon(col, row);
           for (const { nc, nr, ea, eb } of allNeighbours(col, row)) {
-            const nf = lookup.get(`${nc},${nr}`)?.faction ?? null;
+            const nf = cell(nc, nr)?.faction ?? null;
             if (me === nf) continue;
-            // Edge key independent of which hex visits it.
-            const ax = ring[ea][0].toFixed(3), ay = ring[ea][1].toFixed(3);
-            const bx = ring[eb][0].toFixed(3), by = ring[eb][1].toFixed(3);
+            const ax = ring[ea][0].toFixed(2), ay = ring[ea][1].toFixed(2);
+            const bx = ring[eb][0].toFixed(2), by = ring[eb][1].toFixed(2);
             const key = ax < bx || (ax === bx && ay < by)
               ? `${ax},${ay}|${bx},${by}` : `${bx},${by}|${ax},${ay}`;
             if (seen.has(key)) continue;
@@ -343,25 +380,34 @@ export async function initGlobe(container, config) {
     }
 
     // ── Solid white poles ON TOP of the ice hexes ───────────────────────────
-    // The hex grid only reaches ±60°; fill the remaining polar caps to the pole
-    // with solid white so the ice runs all the way up, blending into the hexes.
+    // Fill all the way to the pole (y=0) with opaque white so there is never any
+    // blue at the cap; feather the lower edge so it blends into the ice hexes.
+    // A slightly wavy lower edge keeps the cap from being a perfect circle.
     const capWhite = '#f4f9ff';
-    // North: from pole (y=0) down past the top of the ice hexes (~lat 58).
-    const nY = latToY(57);
-    const gN = ctx.createLinearGradient(0, 0, 0, nY);
-    gN.addColorStop(0, capWhite);
-    gN.addColorStop(0.78, capWhite);
-    gN.addColorStop(1, 'rgba(244,249,255,0)');
-    ctx.fillStyle = gN;
-    ctx.fillRect(0, 0, TW, nY);
-    // South: symmetric.
-    const sY = latToY(-57);
-    const gS = ctx.createLinearGradient(0, TH, 0, sY);
-    gS.addColorStop(0, capWhite);
-    gS.addColorStop(0.78, capWhite);
-    gS.addColorStop(1, 'rgba(244,249,255,0)');
-    ctx.fillStyle = gS;
-    ctx.fillRect(0, sY, TW, TH - sY);
+    function paintCap(north) {
+      const edgeLat = 47;              // where the solid white starts to fade
+      const baseY = latToY(north ? edgeLat : -edgeLat);
+      const poleY = north ? 0 : TH;
+      const grad = ctx.createLinearGradient(0, poleY, 0, baseY);
+      grad.addColorStop(0, capWhite);
+      grad.addColorStop(0.82, capWhite);
+      grad.addColorStop(1, 'rgba(244,249,255,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, Math.min(poleY, baseY), TW, Math.abs(baseY - poleY));
+      // Wavy fringe of white blobs just below the solid edge for an irregular rim.
+      ctx.fillStyle = capWhite;
+      for (let i = 0; i <= 96; i++) {
+        const lng = -180 + (i / 96) * 360;
+        const wob = (iceN(i * 0.3, north ? 1 : 9, 2) - 0.5) * 6;
+        const lat = (north ? 1 : -1) * (edgeLat - 2 + wob);
+        const x = lngToX(lng), y = latToY(lat);
+        ctx.beginPath();
+        ctx.arc(x, y, 34 * SCALE, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+    }
+    paintCap(true);
+    paintCap(false);
 
     const tex = new THREE.CanvasTexture(cv);
     tex.wrapS = THREE.RepeatWrapping; // seamless east-west wrap (fixes seam clip)
@@ -385,8 +431,8 @@ export async function initGlobe(container, config) {
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
   // Camera state: lateral pan (panX/panY) lets the planet sit off-centre so you
   // can zoom into a region near the edge of the screen. camZ is the dolly.
-  const MAX_Z = 3.7;          // furthest zoom-out (nation-label level)
-  let panX = 0, panY = 0, camZ = MAX_Z;
+  const MAX_Z = 5.2;          // furthest zoom-out allowed
+  let panX = 0, panY = 0, camZ = 3.9; // start zoomed out at the nation-label level
   function applyCamera() {
     camera.position.set(panX, panY, camZ);
     camera.up.set(0, 1, 0);
@@ -460,12 +506,13 @@ export async function initGlobe(container, config) {
   container.appendChild(pinLayer);
 
   const TYPE_COLORS = { location: '#ffd23f', faction: '#e8a030', character: '#50c878' };
-  // Nation labels show ONLY at the furthest zoom-out; any zoom-in immediately
-  // switches to city pins.
-  const ZOOM_FAR = MAX_Z - 0.05;
+  // Label visibility by zoom, with an overlap band where both nations and cities
+  // are shown: nations fade out as you zoom past NATION_HIDE; cities fade in at
+  // CITY_SHOW. Between them (CITY_SHOW..NATION_HIDE inverted) both are visible.
+  const NATION_HIDE = 2.3;  // nations visible while camZ > this
+  const CITY_SHOW   = 3.7;  // cities visible while camZ < this
   let countryHandler = null, shipHandler = null;
-  let lastActivity = performance.now();
-  const markActivity = () => { lastActivity = performance.now(); };
+  let autoRotate = true;    // spins until the first east-west drag
   let pins = [];
 
   function setPins(pinData, onClick) {
@@ -526,7 +573,7 @@ export async function initGlobe(container, config) {
     </svg>
     <div class="ship-label">CALADRIUS</div>`;
   ship.addEventListener('click', e => {
-    e.stopPropagation(); markActivity();
+    e.stopPropagation();
     if (shipHandler) shipHandler();
   });
   orbitLayer.appendChild(ship);
@@ -551,17 +598,17 @@ export async function initGlobe(container, config) {
   function updatePinPositions() {
     sphere.updateMatrixWorld();
     updateShip();
-    const far = camZ >= ZOOM_FAR;
-    // Far zoom → country labels; near zoom → city pins. They swap.
+    const showCities = camZ < CITY_SHOW;
+    const showNations = camZ > NATION_HIDE;
     for (const { el, local } of pins) {
-      const p = far ? null : projectLocal(local);
+      const p = showCities ? projectLocal(local) : null;
       if (!p) { el.style.display = 'none'; continue; }
       el.style.display = '';
       el.style.left = p.x + 'px';
       el.style.top  = p.y + 'px';
     }
     for (const { el, local } of factionLabels) {
-      const p = far ? projectLocal(local) : null;
+      const p = showNations ? projectLocal(local) : null;
       if (!p) { el.style.display = 'none'; continue; }
       el.style.display = '';
       el.style.left = p.x + 'px';
@@ -580,14 +627,14 @@ export async function initGlobe(container, config) {
   canvas.addEventListener('pointerdown', e => {
     dragging = true;
     lastX = e.clientX;
-    markActivity();
     canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener('pointermove', e => {
     if (!dragging) return;
-    sphere.rotation.y += (e.clientX - lastX) * 0.005;
+    const dx = e.clientX - lastX;
+    if (Math.abs(dx) > 1) autoRotate = false; // first east-west drag stops the spin
+    sphere.rotation.y += dx * 0.005;
     lastX = e.clientX;
-    markActivity();
     renderScene();
   });
   canvas.addEventListener('pointerup', e => {
@@ -598,7 +645,6 @@ export async function initGlobe(container, config) {
   // Zoom toward the cursor so the planet can sit off-centre.
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
-    markActivity();
     const rect = canvas.getBoundingClientRect();
     const ndcX = ((e.clientX - rect.left) / width) * 2 - 1;
     const ndcY = -(((e.clientY - rect.top) / height) * 2 - 1);
@@ -620,11 +666,11 @@ export async function initGlobe(container, config) {
     renderScene();
   }, { passive: false });
 
-  // Idle auto-rotation: after 10s of no interaction, slowly spin east-west.
-  (function idleTick() {
-    requestAnimationFrame(idleTick);
-    if (!dragging && performance.now() - lastActivity > 10000) {
-      sphere.rotation.y += 0.0008;
+  // Auto-rotate from load; stops permanently once the user drags east-west.
+  (function spinTick() {
+    requestAnimationFrame(spinTick);
+    if (autoRotate && !dragging) {
+      sphere.rotation.y += 0.0009;
       renderScene();
     }
   })();

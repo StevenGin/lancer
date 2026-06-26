@@ -1,7 +1,7 @@
 ---
 type: country
 title: Greenvale Republic
-controllingFaction: concord
+controllingFaction: gsl
 shortName: GVR
 allegiance: Union-aligned
 territory: ["1113", "1418", "1213", "1318"]

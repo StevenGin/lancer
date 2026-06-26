@@ -1,7 +1,7 @@
 ---
 type: country
 title: The Duneward Coalition
-controllingFaction: iron-accord
+controllingFaction: dsu
 shortName: DC
 allegiance: Union-aligned
 territory: ["0216", "0310", "0414", "0315"]

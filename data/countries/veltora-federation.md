@@ -1,7 +1,7 @@
 ---
 type: country
 title: Veltora Federation
-controllingFaction: caladrius
+controllingFaction: vlc
 shortName: VF
 allegiance: independent
 territory: ["1611", "2004", "1511", "1711"]

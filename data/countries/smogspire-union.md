@@ -1,7 +1,7 @@
 ---
 type: country
 title: Smogspire Union
-controllingFaction: caladrius
+controllingFaction: vlc
 shortName: SU
 allegiance: independent
 territory: ["2309", "2209", "2409", "2310"]

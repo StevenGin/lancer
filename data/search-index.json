@@ -77,11 +77,25 @@
     "excerpt": "Overview The administrative capital of the Lakeside Union, built along the shores of the great inland lake that defines the region. Lakeside's economy centers on freshwater fishing, lake transport, an"
   },
   {
+    "id": "lyric",
+    "type": "location",
+    "title": "Lyric",
+    "tags": [],
+    "excerpt": "Overview Lyric is a vast dystopian city of neon and endless rain — the beating heart of the GSL. Deals are struck high in the Pearl Towers and sealed on the floor of the Mystique Casino, where everyon"
+  },
+  {
     "id": "meadowbridge",
     "type": "location",
     "title": "Meadowbridge",
     "tags": [],
     "excerpt": "Overview Named for the ancient stone bridge spanning the Great Meadow River, Meadowbridge is a prosperous inland trading city at the heart of the Greenvale Republic. Agricultural goods from across the"
+  },
+  {
+    "id": "new-ventis",
+    "type": "location",
+    "title": "New Ventis",
+    "tags": [],
+    "excerpt": "Overview New Ventis is the home of the VLC: a city of two halves, one that does the polluting and one that is the polluted. Its refineries crack the super-fuel that powers the Combine's fleets, and ru"
   },
   {
     "id": "nortreach-city",
@@ -96,6 +110,13 @@
     "title": "Oakhaven",
     "tags": [],
     "excerpt": "Overview The primary city of the Southpoint League and a major hub for equatorial trade. Oakhaven benefits from the temperate island climate and serves as a neutral trading port for factions that cann"
+  },
+  {
+    "id": "ornament",
+    "type": "location",
+    "title": "Ornament",
+    "tags": [],
+    "excerpt": "Overview Ornament is a discreet desert city and the hidden seat of the DSU. Behind unmarked façades and blank doors, the planet's most influential people meet where no one can watch. To outsiders it i"
   },
   {
     "id": "port-ember",
@@ -222,42 +243,42 @@
     "title": "Caladrius",
     "tags": [
       "orbital",
-      "industrial",
+      "neutral",
       "starfaring"
     ],
-    "excerpt": "Overview Caladrius is the orbital power that holds Vandyse's industrial heartland. Operating from the deep-space carrier Caladrius — a stationary vessel parked in geosynchronous orbit above the Veltor"
+    "excerpt": "Overview Caladrius is the orbital carrier that hangs stationary above Vandyse — a fixed star that never sets. The Compact controls no countries on the surface. It is a neutral shipyard, customs house "
   },
   {
-    "id": "concord",
+    "id": "dsu",
     "type": "faction",
-    "title": "Concord of Free States",
+    "title": "DSU",
     "tags": [
-      "agricultural",
-      "democratic",
-      "coalition"
+      "secretive",
+      "corporate",
+      "influential"
     ],
-    "excerpt": "Overview The Concord of Free States is a democratic bloc uniting Vandyse's great agricultural nations. It guarantees mutual defence and free grain trade between the Northreach Confederacy, the Greenva"
+    "excerpt": "Overview The DSU is the smallest and most secretive corporation on Vandyse — and quietly the most influential. Part think-tank, part secret society, its membership reads like a planetary MENSA crossed"
   },
   {
-    "id": "highland-league",
+    "id": "gsl",
     "type": "faction",
-    "title": "Highland League",
+    "title": "GSL",
     "tags": [
-      "mountain",
-      "frontier",
-      "league"
+      "syndicate",
+      "supply",
+      "vice"
     ],
-    "excerpt": "Overview The Highland League governs Vandyse's rugged eastern interior. A loose commonwealth of mountain and lake states, it unites the Stoneview Commonwealth, the Farreach League and the Lakeside Uni"
+    "excerpt": "Overview The GSL controls what people need and what people want. It owns the food supply and the medical supply, and it runs the gambling, the loans and the rackets beneath them. On Vandyse, everyone "
   },
   {
-    "id": "iron-accord",
+    "id": "vlc",
     "type": "faction",
-    "title": "Iron Accord",
+    "title": "VLC",
     "tags": [
-      "frontier",
+      "military",
       "industrial",
-      "militant"
+      "paracausal"
     ],
-    "excerpt": "Overview The Iron Accord is a hard-bitten pact of frontier and coastal states forged from necessity rather than ideology. It binds the Duneward Coalition, the Rustcoast Confederacy and the Brightmarch"
+    "excerpt": "Overview The VLC is the top dog: heavy industry, super-fuel refining, an in-house pilot program, and the planet's only sanctioned link to ISPN paracausal research. Its flagship asset is Nova, a super-"
   }
 ]

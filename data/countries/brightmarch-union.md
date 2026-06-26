@@ -1,7 +1,7 @@
 ---
 type: country
 title: Brightmarch Union
-controllingFaction: iron-accord
+controllingFaction: dsu
 shortName: BMU
 allegiance: independent
 territory: ["1021", "0815", "0921", "1121"]
