@@ -150,6 +150,66 @@ export async function initGlobe(container, config) {
   }
   for (const k of toErode) lookup.set(k, { terrain: 'ocean', faction: null });
 
+  // ── Remove fully-enclosed enclaves only ─────────────────────────────────────
+  // A blob of one nation is dissolved into a neighbour ONLY when (a) it is not
+  // that nation's main (largest) blob, and (b) every nation touching it is the
+  // same single other nation — water/ice borders are allowed. Islands surrounded
+  // only by water, or blobs bordering two+ nations, are kept.
+  {
+    const wrap0 = c => ((c % COLS) + COLS) % COLS;
+    const keyOf = (c, r) => `${wrap0(c)},${r}`;
+    for (let pass = 0; pass < 4; pass++) {
+      const visited = new Set();
+      const comps = [];
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const k = `${col},${row}`;
+          const d = lookup.get(k);
+          if (!d.faction || visited.has(k)) continue;
+          const fac = d.faction, hexes = [], stack = [[col, row]];
+          visited.add(k);
+          while (stack.length) {
+            const [c, r] = stack.pop();
+            hexes.push([c, r]);
+            for (const [nc, nr] of rawNeighbours(c, r)) {
+              if (nr < 0 || nr >= ROWS) continue;
+              const wk = keyOf(nc, nr);
+              if (!visited.has(wk) && lookup.get(wk)?.faction === fac) {
+                visited.add(wk);
+                stack.push([wrap0(nc), nr]);
+              }
+            }
+          }
+          comps.push({ fac, hexes });
+        }
+      }
+      const maxSize = {};
+      for (const cmp of comps) maxSize[cmp.fac] = Math.max(maxSize[cmp.fac] || 0, cmp.hexes.length);
+
+      const dissolve = [];
+      for (const cmp of comps) {
+        if (cmp.hexes.length >= maxSize[cmp.fac]) continue; // keep each nation's main blob
+        const inComp = new Set(cmp.hexes.map(([c, r]) => keyOf(c, r)));
+        const extFactions = new Set();
+        let rep = null;
+        for (const [c, r] of cmp.hexes) {
+          for (const [nc, nr] of rawNeighbours(c, r)) {
+            if (nr < 0 || nr >= ROWS) continue;
+            const wk = keyOf(nc, nr);
+            if (inComp.has(wk)) continue;
+            const nd = lookup.get(wk);
+            if (nd && nd.faction) { extFactions.add(nd.faction); rep = nd; }
+          }
+        }
+        if (extFactions.size === 1 && rep)
+          dissolve.push([cmp.hexes, { terrain: rep.terrain, faction: rep.faction }]);
+      }
+      if (!dissolve.length) break;
+      for (const [hexes, rep] of dissolve)
+        for (const [c, r] of hexes) lookup.set(keyOf(c, r), rep);
+    }
+  }
+
   // ── Faction centroids (for labels) ────────────────────────────────────────
   const factionCentroids = new Map();
   for (const fk of Object.keys(FACTION_COLOR)) {
