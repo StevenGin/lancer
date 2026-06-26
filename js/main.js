@@ -14,13 +14,21 @@ async function main() {
   await initPins(globe, config, wiki);
   await initSearch(wiki);
 
-  // Tint toggle.
+  // Clicking a country label (far zoom) opens its faction/nation wiki entry.
+  globe.onCountry((slug, name) => {
+    wiki.open('faction', slug, name);
+    wiki.panelOpen();
+  });
+
+  // Country-colour toggle (default view is physical terrain).
   const tintBtn = document.getElementById('tint-toggle');
   if (tintBtn) {
+    tintBtn.classList.remove('active');
+    tintBtn.title = 'Show country colours';
     tintBtn.addEventListener('click', () => {
       const on = globe.toggleTint();
       tintBtn.classList.toggle('active', on);
-      tintBtn.title = on ? 'Hide faction tint' : 'Show faction tint';
+      tintBtn.title = on ? 'Show terrain' : 'Show country colours';
     });
   }
 

@@ -465,17 +465,23 @@ html, body {
   text-align: center;
   white-space: pre-line;        /* honour \n in the label string */
   font-family: 'Courier New', monospace;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: bold;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255,252,240,0.88);
+  color: rgba(255,252,240,0.92);
   text-shadow:
-    0 0 3px rgba(0,0,0,0.9),
-    0 0 6px rgba(0,0,0,0.7),
-    0 1px 2px rgba(0,0,0,0.9);
-  pointer-events: none;
-  line-height: 1.35;
+    0 0 4px rgba(0,0,0,0.95),
+    0 0 8px rgba(0,0,0,0.8),
+    0 1px 2px rgba(0,0,0,0.95);
+  pointer-events: auto;
+  cursor: pointer;
+  line-height: 1.3;
+  transition: color 0.15s, text-shadow 0.15s;
+}
+.faction-label:hover {
+  color: var(--accent);
+  text-shadow: 0 0 6px rgba(0,0,0,1), 0 0 12px rgba(201,168,76,0.6);
 }
 
 /* ── Pin markers (absolutely positioned at the projected point centre) ── */
