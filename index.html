@@ -4,11 +4,35 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Vanities — Campaign Map</title>
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div id="map"></div>
+
+  <!-- On-map title block (cartographic style, echoes the reference map) -->
+  <div id="map-title">
+    <div class="mt-name">VANITIES</div>
+    <div class="mt-line">Class: Terrestrial</div>
+    <div class="mt-line">Diameter: 10,230 km · Gravity: 1.05 G</div>
+    <div class="mt-line">Day: 28.7 hrs · Year: 421 Days</div>
+    <div class="mt-sub">DSU Cartographic Division · Union of Stations</div>
+  </div>
+
+  <!-- Legend -->
+  <div id="map-legend">
+    <div class="ml-title">LEGEND</div>
+    <div class="ml-row"><span class="ml-sw" style="background:#3d5a28"></span>Agricultural / Forest</div>
+    <div class="ml-row"><span class="ml-sw" style="background:#9a7d3e"></span>Desert / Arid</div>
+    <div class="ml-row"><span class="ml-sw" style="background:#6a6052"></span>Highland / Mountain</div>
+    <div class="ml-row"><span class="ml-sw" style="background:#3a3640"></span>Industrial / Urban</div>
+    <div class="ml-row"><span class="ml-sw" style="background:#cdd9e2"></span>Tundra / Polar</div>
+    <div class="ml-row"><span class="ml-sw" style="background:#16467a"></span>Water</div>
+  </div>
+
+  <div id="map-controls">
+    <button id="tint-toggle" class="map-btn active" title="Hide faction tint">⬡</button>
+  </div>
+  <div id="map-hint">Drag to rotate the planet · scroll to zoom</div>
 
   <div id="panel">
     <button id="panel-tab" aria-label="Toggle wiki panel">
@@ -46,15 +70,9 @@
     </div>
   </div>
 
-  <div id="map-controls">
-    <button id="tint-toggle" class="map-btn active" title="Hide faction tint">⬡</button>
-  </div>
-
-  <div id="dev-tooltip" style="display:none"></div>
-
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script src="vendor/d3.min.js"></script>
+  <script src="vendor/marked.min.js"></script>
+  <script src="vendor/fuse.min.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>
