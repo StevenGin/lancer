@@ -526,8 +526,8 @@ export async function initGlobe(container, config) {
         const polar = Math.abs(j / h - 0.5) * 2;        // 0 at equator, 1 at pole
         const fade = Math.max(0, 1 - Math.pow(polar, 2.2) * 1.2);
         let n = cn(cx, j * 0.028, 5) * 0.7 + cn(cx * 2.3 + 11, j * 0.07 + 5, 3) * 0.3;
-        n = Math.max(0, n - 0.30) / 0.45;                 // broad, soft cloud masses
-        const a = Math.min(220, Math.round(Math.pow(Math.min(1, n), 1.1) * 220 * fade));
+        n = Math.max(0, n - 0.42) / 0.5;                  // sparser, soft cloud wisps
+        const a = Math.min(210, Math.round(Math.pow(Math.min(1, n), 1.2) * 210 * fade));
         const k = (j * w + i) * 4;
         d[k] = d[k + 1] = d[k + 2] = 255; d[k + 3] = a;
       }
@@ -787,11 +787,17 @@ export async function initGlobe(container, config) {
     renderScene();
   }, { passive: false });
 
-  // Continuous loop: clouds always drift; planet auto-rotates until first drag.
+  // Clouds only appear at the furthest zoom-out; fade them in/out smoothly.
+  // (The cloud mesh is a child of the planet, so it already inherits the planet's
+  // rotation; this is just its own small extra drift.)
+  const CLOUD_SHOW = 3.6, CLOUD_OPACITY = 0.6;
   (function animate() {
     requestAnimationFrame(animate);
-    clouds.rotation.y += 0.00022;            // slow independent cloud drift
+    clouds.rotation.y += 0.00018;
     if (autoRotate && !dragging) sphere.rotation.y += 0.0009;
+    const target = camZ >= CLOUD_SHOW ? CLOUD_OPACITY : 0;
+    clouds.material.opacity += (target - clouds.material.opacity) * 0.08;
+    clouds.visible = clouds.material.opacity > 0.01;
     renderScene();
   })();
 
