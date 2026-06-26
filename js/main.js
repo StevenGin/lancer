@@ -26,11 +26,11 @@ async function main() {
     wiki.panelOpen();
   });
 
-  // Country-colour toggle (default view is physical terrain).
+  // Terrain/country toggle (default view is country colours).
   const tintBtn = document.getElementById('tint-toggle');
   if (tintBtn) {
-    tintBtn.classList.remove('active');
-    tintBtn.title = 'Show country colours';
+    tintBtn.classList.add('active');
+    tintBtn.title = 'Show terrain';
     tintBtn.addEventListener('click', () => {
       const on = globe.toggleTint();
       tintBtn.classList.toggle('active', on);

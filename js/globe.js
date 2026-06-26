@@ -502,10 +502,47 @@ export async function initGlobe(container, config) {
   applyCamera();
 
   // Use BasicMaterial so the baked texture renders exactly as painted.
-  // Default to the physical/terrain map; the toggle switches to political colours.
-  const material = new THREE.MeshBasicMaterial({ map: texTerrain });
+  // Default to the political/country map; the toggle switches to physical terrain.
+  const material = new THREE.MeshBasicMaterial({ map: texPolitical });
   const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 160, 160), material);
   scene.add(sphere);
+
+  // ── Drifting cloud layer ────────────────────────────────────────────────────
+  // A slightly larger transparent sphere with a soft, horizontally-tileable cloud
+  // texture that rotates independently of the planet.
+  const cloudTex = (() => {
+    const w = 2048, h = 1024, rad = 4.2;
+    const cv = document.createElement('canvas');
+    cv.width = w; cv.height = h;
+    const x = cv.getContext('2d');
+    const img = x.createImageData(w, h);
+    const d = img.data;
+    const cn = makeNoise(881);
+    for (let j = 0; j < h; j++) {
+      for (let i = 0; i < w; i++) {
+        const ang = (i / w) * 2 * Math.PI;
+        const cx = Math.cos(ang) * rad + 30, cz = Math.sin(ang) * rad + 60;
+        // fade clouds out toward the poles so the caps stay clear
+        const polar = Math.abs(j / h - 0.5) * 2;        // 0 at equator, 1 at pole
+        const fade = Math.max(0, 1 - Math.pow(polar, 2.2) * 1.2);
+        let n = cn(cx, j * 0.028, 5) * 0.7 + cn(cx * 2.3 + 11, j * 0.07 + 5, 3) * 0.3;
+        n = Math.max(0, n - 0.30) / 0.45;                 // broad, soft cloud masses
+        const a = Math.min(220, Math.round(Math.pow(Math.min(1, n), 1.1) * 220 * fade));
+        const k = (j * w + i) * 4;
+        d[k] = d[k + 1] = d[k + 2] = 255; d[k + 3] = a;
+      }
+    }
+    x.putImageData(img, 0, 0);
+    const t = new THREE.CanvasTexture(cv);
+    t.wrapS = THREE.RepeatWrapping;
+    t.anisotropy = 8;
+    return t;
+  })();
+  const clouds = new THREE.Mesh(
+    new THREE.SphereGeometry(1.015, 96, 96),
+    new THREE.MeshBasicMaterial({ map: cloudTex, transparent: true, opacity: 0.82, depthWrite: false })
+  );
+  sphere.add(clouds); // ride along with the planet, plus their own drift
 
   // Thin atmosphere rim (additive blend so it glows).
   const atmoMat = new THREE.ShaderMaterial({
@@ -750,13 +787,12 @@ export async function initGlobe(container, config) {
     renderScene();
   }, { passive: false });
 
-  // Auto-rotate from load; stops permanently once the user drags east-west.
-  (function spinTick() {
-    requestAnimationFrame(spinTick);
-    if (autoRotate && !dragging) {
-      sphere.rotation.y += 0.0009;
-      renderScene();
-    }
+  // Continuous loop: clouds always drift; planet auto-rotates until first drag.
+  (function animate() {
+    requestAnimationFrame(animate);
+    clouds.rotation.y += 0.00022;            // slow independent cloud drift
+    if (autoRotate && !dragging) sphere.rotation.y += 0.0009;
+    renderScene();
   })();
 
   function panTo(lng) {
@@ -776,7 +812,7 @@ export async function initGlobe(container, config) {
   window.addEventListener('resize', resize);
   resize();
 
-  let political = false; // default: physical/terrain map
+  let political = true; // default: political/country map
   return {
     toggleTint() {
       political = !political;
