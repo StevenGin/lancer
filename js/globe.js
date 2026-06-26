@@ -97,55 +97,110 @@ export async function initGlobe(container, config) {
     return ring;
   }
 
-  // ── Territory lookup (heavily warped for organic, non-rigid shapes) ──────────
+  // Zones split into shaped land/sea (warped) and channels/lakes that must be
+  // carved precisely in real hex space (so they actually separate continents
+  // instead of being swallowed by the warp).
+  const carveZones = zones.filter(z => z.carve);
+  const landZones  = zones.filter(z => !z.carve);
+
+  // ── Territory lookup ────────────────────────────────────────────────────────
   const warpA = makeNoise(211), warpB = makeNoise(307), warpC = makeNoise(409);
   const edgeN = makeNoise(523), iceN = makeNoise(617);
   function sampleZone(col, row) {
-    // Two-scale domain warp: a broad undulation plus a finer jitter so no
-    // boundary (especially the row-aligned east-west ones) stays straight.
-    const wx = (warpA(col * 0.15, row * 0.15, 2) - 0.5) * 7.5
-             + (warpC(col * 0.55, row * 0.55, 2) - 0.5) * 3.2;
-    const wy = (warpB(col * 0.15, row * 0.15, 2) - 0.5) * 6.5
-             + (warpC(col * 0.55 + 9, row * 0.55 + 9, 2) - 0.5) * 3.0;
+    // Moderate two-scale domain warp: enough to break straight borders, not so
+    // much that nations teleport into each other (which created enclaves).
+    const wx = (warpA(col * 0.15, row * 0.15, 2) - 0.5) * 4.6
+             + (warpC(col * 0.5, row * 0.5, 2) - 0.5) * 1.8;
+    const wy = (warpB(col * 0.15, row * 0.15, 2) - 0.5) * 4.0
+             + (warpC(col * 0.5 + 9, row * 0.5 + 9, 2) - 0.5) * 1.6;
     const sc = col + wx, sr = row + wy;
     let entry = { terrain: 'ocean', faction: null };
-    for (const z of zones) {
+    for (const z of landZones) {
       if (sr >= z.rMin && sr <= z.rMax && sc >= z.cMin && sc <= z.cMax)
         entry = { terrain: z.terrain, faction: z.faction || null };
     }
     return entry;
   }
+
   // Latitude bands, with a per-column wobble so the ice / water boundary is not
   // a perfectly straight line of latitude.
-  const ICE_LAT = 47;    // base |lat| for ice
-  const MOAT_LAT = 40;   // base |lat| for the separating water ring
+  const ICE_LAT = 47, MOAT_LAT = 40;
   const lookup = new Map();
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       const lat = Math.abs(hexCenter(col, row)[1]);
-      const wob = (iceN(col * 0.45, row * 0.12, 2) - 0.5) * 9; // wavy cap edge
+      const wob = (iceN(col * 0.45, row * 0.12, 2) - 0.5) * 9;
       if (lat >= ICE_LAT + wob) lookup.set(`${col},${row}`, { terrain: 'ice', faction: null });
       else if (lat >= MOAT_LAT + wob * 0.7) lookup.set(`${col},${row}`, { terrain: 'ocean', faction: null });
       else lookup.set(`${col},${row}`, sampleZone(col, row));
     }
   }
 
-  // Coastal erosion: nibble a fraction of land hexes that touch ocean so coasts
-  // (and continents) lose a hex here and there — no perfectly clean edges.
   const ODD = r => r % 2 === 1;
   function rawNeighbours(col, row) {
     const o = ODD(row);
     return [[col+1,row],[col+(o?1:0),row+1],[col+(o?0:-1),row+1],
             [col-1,row],[col+(o?0:-1),row-1],[col+(o?1:0),row-1]];
   }
+  const wrap0 = c => ((c % COLS) + COLS) % COLS;
+  const at = (c, r) => (r < 0 || r >= ROWS) ? null : lookup.get(`${wrap0(c)},${r}`);
+
+  // ── Carve channels & lakes in real hex space (slightly wavy edges) ──────────
+  for (const z of carveZones) {
+    for (let row = z.rMin; row <= z.rMax; row++) {
+      for (let col = z.cMin; col <= z.cMax; col++) {
+        const cur = at(col, row);
+        if (!cur || cur.terrain === 'ice') continue;
+        // jitter the channel edge by a hex so it isn't ruler-straight
+        const j = (edgeN(col * 0.6, row * 0.6, 2) - 0.5);
+        if (col === z.cMin && j > 0.28) continue;
+        if (col === z.cMax && j < -0.28) continue;
+        if (row === z.rMin && j > 0.28) continue;
+        if (row === z.rMax && j < -0.28) continue;
+        lookup.set(`${wrap0(col)},${row}`, { terrain: 'ocean', faction: null });
+      }
+    }
+  }
+
+  // ── Despeckle: dissolve faction enclaves and thin slivers ────────────────────
+  // A hex with <=1 neighbour of its own faction is reassigned to the dominant
+  // surrounding entry. Removes the "nation fully enclosed in another" artefacts.
+  for (let pass = 0; pass < 4; pass++) {
+    const changes = [];
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const d = lookup.get(`${col},${row}`);
+        if (!d.faction) continue;
+        const counts = new Map();
+        let same = 0, bestKey = null, bestN = 0, bestEntry = null;
+        for (const [c, r] of rawNeighbours(col, row)) {
+          const nd = at(c, r);
+          const key = nd ? (nd.faction || `_${nd.terrain}`) : '_ocean';
+          if (nd && nd.faction === d.faction) same++;
+          const n = (counts.get(key) || 0) + 1;
+          counts.set(key, n);
+          if (n > bestN) { bestN = n; bestKey = key; bestEntry = nd || { terrain: 'ocean', faction: null }; }
+        }
+        if (same <= 1 && bestKey && bestKey !== (d.faction)) {
+          changes.push([`${col},${row}`, bestEntry.faction
+            ? { terrain: bestEntry.terrain, faction: bestEntry.faction }
+            : { terrain: 'ocean', faction: null }]);
+        }
+      }
+    }
+    if (!changes.length) break;
+    for (const [k, v] of changes) lookup.set(k, v);
+  }
+
+  // ── Coastal erosion: nibble a few coastal land hexes for ragged shores ──────
   const toErode = [];
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       const d = lookup.get(`${col},${row}`);
       if (d.terrain === 'ocean' || d.terrain === 'ice') continue;
       const touchesOcean = rawNeighbours(col, row)
-        .some(([c, r]) => (lookup.get(`${c},${r}`)?.terrain ?? 'ocean') === 'ocean');
-      if (touchesOcean && edgeN(col * 0.9, row * 0.9, 2) > 0.66) toErode.push(`${col},${row}`);
+        .some(([c, r]) => (at(c, r)?.terrain ?? 'ocean') === 'ocean');
+      if (touchesOcean && edgeN(col * 0.9, row * 0.9, 2) > 0.7) toErode.push(`${col},${row}`);
     }
   }
   for (const k of toErode) lookup.set(k, { terrain: 'ocean', faction: null });
