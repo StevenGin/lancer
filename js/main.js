@@ -6,8 +6,7 @@ import { initSearch } from './search.js';
 async function main() {
   const config = await fetch('data/config.json').then(r => r.json());
 
-  const H = config.mapHeight;
-  const W = config.mapWidth;
+  const { globe: g, mapWidth: W, mapHeight: H } = config;
 
   const map = L.map('map', {
     crs: L.CRS.Simple,
@@ -17,11 +16,18 @@ async function main() {
     attributionControl: false,
   });
 
-  // Bounds: top-left is [-H, 0], bottom-right is [0, W]
-  // Pixel (px, py) maps to L.latLng(-py, px)
-  const bounds = [[-H, 0], [0, W]];
-  L.imageOverlay(config.mapImage, bounds).addTo(map);
-  map.fitBounds(bounds);
+  // Globe hemisphere view: zoom so globe height fills ~90% of screen height,
+  // then only ~half the globe width is visible at once. East-west panning reveals more.
+  const globeDiameter = g.r * 2;
+  const initZoom = Math.log2((window.innerHeight * 0.9) / globeDiameter);
+  map.setView(L.latLng(-g.cy, g.cx), initZoom);
+
+  // Constrain north-south to just beyond the globe; east-west to one globe-width of padding
+  const vPad = 40, hPad = g.r * 0.6;
+  map.setMaxBounds([
+    [-(g.cy + g.r + vPad), g.cx - g.r - hPad],
+    [-(g.cy - g.r - vPad), g.cx + g.r + hPad],
+  ]);
 
   // Hide pin labels when zoomed out far
   map.on('zoomend', () => {
@@ -35,7 +41,17 @@ async function main() {
 
   const wiki = initWiki(map, config);
 
-  initHexGrid(map, config);
+  const hexGrid = await initHexGrid(map, config);
+
+  // Tint toggle button
+  const tintBtn = document.getElementById('tint-toggle');
+  if (tintBtn) {
+    tintBtn.addEventListener('click', () => {
+      const on = hexGrid.toggleTint();
+      tintBtn.classList.toggle('active', on);
+      tintBtn.title = on ? 'Hide faction tint' : 'Show faction tint';
+    });
+  }
   await initPins(map, config, wiki);
   await initSearch(wiki);
 

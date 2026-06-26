@@ -1,7 +1,7 @@
 {
-  "mapImage": "assets/map.svg",
   "mapWidth": 1092,
   "mapHeight": 1092,
+  "globe": { "cx": 546, "cy": 546, "r": 478 },
   "minZoom": -2,
   "maxZoom": 3,
   "labelZoomThreshold": -1,
