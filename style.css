@@ -1,0 +1,473 @@
+:root {
+  --bg: #0d0f14;
+  --panel-bg: #13161e;
+  --panel-border: #2a2e3d;
+  --accent: #c9a84c;
+  --accent-dim: #8a6e2e;
+  --text: #cdd2e0;
+  --text-dim: #7a8099;
+  --location: #4a9eff;
+  --faction: #e8a030;
+  --character: #50c878;
+  --panel-width: 400px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Courier New', Courier, monospace;
+}
+
+/* ── Map ── */
+#map {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #060810;
+}
+
+.leaflet-container { background: #060810; }
+
+/* ── Panel ── */
+#panel {
+  position: fixed;
+  right: 0; top: 0;
+  height: 100%;
+  width: var(--panel-width);
+  z-index: 100;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+  display: flex;
+}
+
+#panel.open { transform: translateX(0); }
+
+#panel-tab {
+  position: absolute;
+  left: -36px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 72px;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+  cursor: pointer;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+#panel-tab:hover { background: #1c2030; }
+#panel.open .tab-icon { transform: scaleX(-1); }
+.tab-icon { display: inline-block; transition: transform 0.3s; }
+
+#panel-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-bg);
+  border-left: 1px solid var(--panel-border);
+  overflow: hidden;
+}
+
+/* ── Panel header ── */
+#panel-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 12px;
+  border-bottom: 1px solid var(--panel-border);
+  flex-shrink: 0;
+}
+
+#search-wrap {
+  flex: 1;
+  position: relative;
+}
+
+#search-input {
+  width: 100%;
+  background: #0d0f14;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 7px 10px;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#search-input:focus { border-color: var(--accent-dim); }
+#search-input::placeholder { color: var(--text-dim); }
+
+#search-results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #1a1e2c;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  z-index: 200;
+  max-height: 300px;
+  overflow-y: auto;
+  display: none;
+}
+
+#search-results.visible { display: block; }
+
+.search-result {
+  padding: 8px 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  border-bottom: 1px solid var(--panel-border);
+  transition: background 0.15s;
+}
+
+.search-result:last-child { border-bottom: none; }
+.search-result:hover { background: #222640; }
+
+.result-type-badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+
+.badge-location { background: #1a3a5e; color: var(--location); }
+.badge-faction { background: #3a2800; color: var(--faction); }
+.badge-character { background: #0d3020; color: var(--character); }
+
+#panel-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 4px;
+  transition: color 0.2s;
+}
+
+#panel-close:hover { color: var(--text); }
+
+/* ── Wiki content ── */
+#wiki-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--panel-border) transparent;
+}
+
+#wiki-content::-webkit-scrollbar { width: 4px; }
+#wiki-content::-webkit-scrollbar-track { background: transparent; }
+#wiki-content::-webkit-scrollbar-thumb { background: var(--panel-border); border-radius: 2px; }
+
+/* ── Home screen ── */
+.wiki-home { text-align: center; padding: 20px 0; }
+
+.planet-name {
+  font-size: 28px;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.planet-subtitle {
+  color: var(--text-dim);
+  font-size: 11px;
+  margin-bottom: 4px;
+}
+
+.home-categories {
+  display: flex;
+  gap: 10px;
+  margin-top: 28px;
+  justify-content: center;
+}
+
+.home-category {
+  flex: 1;
+  background: #0d0f14;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 16px 8px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 11px;
+  color: var(--text-dim);
+  transition: border-color 0.2s, color 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-category:hover { border-color: var(--accent-dim); color: var(--text); }
+.cat-icon { font-size: 20px; color: var(--accent); }
+
+/* ── Wiki article ── */
+.wiki-article {}
+
+.article-back {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.article-back:hover { color: var(--text); }
+
+.article-header { margin-bottom: 20px; }
+
+.article-type-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 8px;
+  display: inline-block;
+}
+
+.article-title {
+  font-size: 22px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.article-subtitle {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-style: italic;
+}
+
+/* ── Meta fields ── */
+.meta-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 20px;
+  background: #0d0f14;
+  border: 1px solid var(--panel-border);
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 12px;
+  gap: 8px;
+}
+
+.meta-label { color: var(--text-dim); flex-shrink: 0; }
+.meta-value { color: var(--text); text-align: right; }
+
+.meta-value a {
+  color: var(--accent);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.meta-value a:hover { text-decoration: underline; }
+
+.status-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-controlled { background: #0d3020; color: var(--character); }
+.status-contested  { background: #3a2000; color: #f0a040; }
+.status-abandoned  { background: #1a1a2e; color: var(--text-dim); }
+.status-ruins      { background: #1a1a2e; color: var(--text-dim); }
+.status-active     { background: #0d3020; color: var(--character); }
+.status-mia        { background: #3a2000; color: #f0a040; }
+.status-kia        { background: #2a0a0a; color: #c04040; }
+.status-retired    { background: #1a1a2e; color: var(--text-dim); }
+.status-dissolved  { background: #1a1a2e; color: var(--text-dim); }
+.status-covert     { background: #1a0d30; color: #9060d0; }
+.status-defunct    { background: #1a1a2e; color: var(--text-dim); }
+
+/* ── Markdown body ── */
+.wiki-body {
+  border-top: 1px solid var(--panel-border);
+  padding-top: 16px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+.wiki-body h1, .wiki-body h2 {
+  color: var(--accent);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin: 20px 0 8px;
+  border-bottom: 1px solid var(--panel-border);
+  padding-bottom: 4px;
+}
+
+.wiki-body h3 { color: var(--text); font-size: 13px; margin: 14px 0 6px; }
+
+.wiki-body p { margin-bottom: 10px; }
+
+.wiki-body ul, .wiki-body ol {
+  padding-left: 18px;
+  margin-bottom: 10px;
+}
+
+.wiki-body li { margin-bottom: 4px; }
+
+.wiki-body strong { color: var(--accent); }
+.wiki-body em { color: var(--text-dim); }
+
+.wiki-body a { color: var(--accent); text-decoration: none; }
+.wiki-body a:hover { text-decoration: underline; }
+
+.wiki-body hr {
+  border: none;
+  border-top: 1px solid var(--panel-border);
+  margin: 16px 0;
+}
+
+.wiki-body blockquote {
+  border-left: 2px solid var(--accent-dim);
+  padding-left: 12px;
+  color: var(--text-dim);
+  margin: 10px 0;
+}
+
+/* ── Category list ── */
+.category-list { display: flex; flex-direction: column; gap: 4px; }
+
+.category-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  background: #0d0f14;
+  border: 1px solid var(--panel-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: border-color 0.2s;
+}
+
+.category-list-item:hover { border-color: var(--accent-dim); }
+
+.category-list-item .item-title { flex: 1; color: var(--text); }
+.category-list-item .item-sub { color: var(--text-dim); font-size: 11px; }
+
+.category-list-back {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 11px;
+  padding: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+
+.category-list-back:hover { color: var(--text); }
+
+.category-list-title {
+  font-size: 14px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+
+/* ── Pin markers ── */
+.pin {
+  cursor: pointer;
+}
+
+.pin-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.6);
+  box-shadow: 0 0 6px currentColor;
+  transition: transform 0.15s;
+}
+
+.pin:hover .pin-dot { transform: scale(1.4); }
+
+.pin-label {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  font-size: 9px;
+  font-family: 'Courier New', monospace;
+  color: #e8e0cc;
+  text-shadow: 0 0 3px #000, 0 0 6px #000, 0 0 2px #000;
+  pointer-events: none;
+  letter-spacing: 0.04em;
+}
+
+/* Hide labels at low zoom via JS class on map container */
+.labels-hidden .pin-label { display: none; }
+
+/* ── Dev tooltip ── */
+#dev-tooltip {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1a1e2c;
+  border: 1px solid var(--accent-dim);
+  border-radius: 6px;
+  padding: 10px 16px;
+  font-size: 12px;
+  color: var(--accent);
+  z-index: 500;
+  pointer-events: none;
+}
+
+/* ── Leaflet overrides ── */
+.leaflet-control-zoom a {
+  background: var(--panel-bg) !important;
+  border-color: var(--panel-border) !important;
+  color: var(--text) !important;
+}
+
+.leaflet-control-zoom a:hover { background: #1c2030 !important; }

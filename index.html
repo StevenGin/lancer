@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vanities — Campaign Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="map"></div>
+
+  <div id="panel">
+    <button id="panel-tab" aria-label="Toggle wiki panel">
+      <span class="tab-icon">◀</span>
+    </button>
+    <div id="panel-inner">
+      <div id="panel-header">
+        <div id="search-wrap">
+          <input id="search-input" type="text" placeholder="Search locations, factions, characters…" autocomplete="off">
+          <div id="search-results"></div>
+        </div>
+        <button id="panel-close" aria-label="Close panel">✕</button>
+      </div>
+      <div id="wiki-content">
+        <div class="wiki-home">
+          <h1 class="planet-name">Vanities</h1>
+          <p class="planet-subtitle">Class: Terrestrial · Diameter: 10,230 km · Gravity: 1.05 G</p>
+          <p class="planet-subtitle">Day: 28.7 hrs · Year: 421 Days · Population: 18.7 Billion</p>
+          <div class="home-categories">
+            <div class="home-category" data-category="locations">
+              <span class="cat-icon">◎</span>
+              <span>Locations</span>
+            </div>
+            <div class="home-category" data-category="factions">
+              <span class="cat-icon">⬡</span>
+              <span>Factions</span>
+            </div>
+            <div class="home-category" data-category="characters">
+              <span class="cat-icon">◈</span>
+              <span>Characters</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="dev-tooltip" style="display:none"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

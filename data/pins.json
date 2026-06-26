@@ -1,0 +1,182 @@
+[
+  {
+    "id": "loc-iceview",
+    "hexAddress": "1403",
+    "pixelX": 520,
+    "pixelY": 110,
+    "type": "location",
+    "slug": "iceview",
+    "label": "Iceview"
+  },
+  {
+    "id": "loc-cindermark",
+    "hexAddress": "2004",
+    "pixelX": 710,
+    "pixelY": 140,
+    "type": "location",
+    "slug": "cindermark",
+    "label": "Cindermark"
+  },
+  {
+    "id": "loc-nortreach-city",
+    "hexAddress": "0707",
+    "pixelX": 277,
+    "pixelY": 240,
+    "type": "location",
+    "slug": "nortreach-city",
+    "label": "Nortreach City"
+  },
+  {
+    "id": "loc-veltora-city",
+    "hexAddress": "1611",
+    "pixelX": 605,
+    "pixelY": 355,
+    "type": "location",
+    "slug": "veltora-city",
+    "label": "Veltora City"
+  },
+  {
+    "id": "loc-smogspire",
+    "hexAddress": "2309",
+    "pixelX": 831,
+    "pixelY": 295,
+    "type": "location",
+    "slug": "smogspire",
+    "label": "Smogspire"
+  },
+  {
+    "id": "loc-rangers-workshop",
+    "hexAddress": "2114",
+    "pixelX": 745,
+    "pixelY": 425,
+    "type": "location",
+    "slug": "rangers-workshop",
+    "label": "Ranger's Workshop"
+  },
+  {
+    "id": "loc-whiteholm",
+    "hexAddress": "0310",
+    "pixelX": 121,
+    "pixelY": 315,
+    "type": "location",
+    "slug": "whiteholm",
+    "label": "Whiteholm"
+  },
+  {
+    "id": "loc-saitan-clan",
+    "hexAddress": "0414",
+    "pixelX": 156,
+    "pixelY": 435,
+    "type": "location",
+    "slug": "saitan-clan",
+    "label": "The Saitan Clan"
+  },
+  {
+    "id": "loc-dsu-hub",
+    "hexAddress": "0216",
+    "pixelX": 95,
+    "pixelY": 490,
+    "type": "location",
+    "slug": "dsu-hub",
+    "label": "DSU Hub"
+  },
+  {
+    "id": "loc-hearthfield",
+    "hexAddress": "1113",
+    "pixelX": 430,
+    "pixelY": 415,
+    "type": "location",
+    "slug": "hearthfield",
+    "label": "Hearthfield"
+  },
+  {
+    "id": "loc-dunegate",
+    "hexAddress": "0815",
+    "pixelX": 312,
+    "pixelY": 465,
+    "type": "location",
+    "slug": "dunegate",
+    "label": "Dunegate"
+  },
+  {
+    "id": "loc-meadowbridge",
+    "hexAddress": "1418",
+    "pixelX": 502,
+    "pixelY": 560,
+    "type": "location",
+    "slug": "meadowbridge",
+    "label": "Meadowbridge"
+  },
+  {
+    "id": "loc-farreach",
+    "hexAddress": "1717",
+    "pixelX": 624,
+    "pixelY": 530,
+    "type": "location",
+    "slug": "farreach",
+    "label": "Farreach"
+  },
+  {
+    "id": "loc-eastwatch",
+    "hexAddress": "2519",
+    "pixelX": 880,
+    "pixelY": 590,
+    "type": "location",
+    "slug": "eastwatch",
+    "label": "Eastwatch"
+  },
+  {
+    "id": "loc-port-ember",
+    "hexAddress": "0219",
+    "pixelX": 90,
+    "pixelY": 600,
+    "type": "location",
+    "slug": "port-ember",
+    "label": "Port Ember"
+  },
+  {
+    "id": "loc-brightwall",
+    "hexAddress": "1021",
+    "pixelX": 381,
+    "pixelY": 640,
+    "type": "location",
+    "slug": "brightwall",
+    "label": "Brightwall"
+  },
+  {
+    "id": "loc-lakeside",
+    "hexAddress": "1822",
+    "pixelX": 641,
+    "pixelY": 670,
+    "type": "location",
+    "slug": "lakeside",
+    "label": "Lakeside"
+  },
+  {
+    "id": "loc-coralhold",
+    "hexAddress": "0825",
+    "pixelX": 312,
+    "pixelY": 770,
+    "type": "location",
+    "slug": "coralhold",
+    "label": "Coralhold"
+  },
+  {
+    "id": "loc-oakhaven",
+    "hexAddress": "1227",
+    "pixelX": 450,
+    "pixelY": 815,
+    "type": "location",
+    "slug": "oakhaven",
+    "label": "Oakhaven"
+  },
+  {
+    "id": "loc-corvida",
+    "hexAddress": "2126",
+    "pixelX": 730,
+    "pixelY": 800,
+    "type": "location",
+    "slug": "corvida",
+    "label": "Corvida"
+  }
+]
