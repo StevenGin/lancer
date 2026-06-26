@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Rustcoast Confederacy
+controllingFaction: iron-accord
 shortName: RCC
 allegiance: independent
 territory: ["0219", "0825", "0120", "0720"]

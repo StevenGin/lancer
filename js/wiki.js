@@ -41,11 +41,28 @@ function renderLocation(meta, body) {
     ${meta.hexAddress ? `<div class="article-subtitle">Hex ${meta.hexAddress}</div>` : ''}
     <div class="meta-fields">
       ${meta.status ? metaRow('Status', badge(meta.status, statusCls)) : ''}
-      ${meta.controllingFaction ? metaRow('Faction', slugLink('faction', meta.controllingFaction, meta.controllingFaction)) : ''}
+      ${meta.controllingFaction ? metaRow('Country', slugLink('country', meta.controllingFaction, meta.controllingFaction)) : ''}
       ${meta.terrainType ? metaRow('Terrain', meta.terrainType) : ''}
       ${meta.population ? metaRow('Population', meta.population) : ''}
       ${Array.isArray(meta.notableFeatures) && meta.notableFeatures.length
         ? metaRow('Features', meta.notableFeatures.join(', ')) : ''}
+    </div>
+    <div class="wiki-body">${marked.parse(body)}</div>
+  `;
+}
+
+function renderCountry(meta, body) {
+  const statusCls = (meta.status || 'active').toLowerCase();
+  return `
+    <div class="article-type-badge badge-country">Country</div>
+    <div class="article-title">${meta.title || ''}</div>
+    ${meta.shortName ? `<div class="article-subtitle">${meta.shortName}</div>` : ''}
+    <div class="meta-fields">
+      ${meta.status ? metaRow('Status', badge(meta.status, statusCls)) : ''}
+      ${meta.controllingFaction ? metaRow('Controlled by', slugLink('faction', meta.controllingFaction, meta.controllingFaction)) : ''}
+      ${meta.allegiance ? metaRow('Allegiance', meta.allegiance) : ''}
+      ${meta.resources ? metaRow('Resources', meta.resources) : ''}
+      ${meta.mechManufacturer === true ? metaRow('Mech Mfr.', 'Yes') : ''}
     </div>
     <div class="wiki-body">${marked.parse(body)}</div>
   `;
@@ -59,6 +76,9 @@ function renderFaction(meta, body) {
   const figures = Array.isArray(meta.keyFigures)
     ? meta.keyFigures.map(s => slugLink('character', s, s)).join(', ')
     : (meta.keyFigures || '');
+  const countries = Array.isArray(meta.controlledCountries)
+    ? meta.controlledCountries.map(s => slugLink('country', s, s)).join(', ')
+    : (meta.controlledCountries || '');
   return `
     <div class="article-type-badge badge-faction">Faction</div>
     <div class="article-title">${meta.title || ''}</div>
@@ -66,6 +86,7 @@ function renderFaction(meta, body) {
     <div class="meta-fields">
       ${meta.status ? metaRow('Status', badge(meta.status, statusCls)) : ''}
       ${meta.allegiance ? metaRow('Allegiance', meta.allegiance) : ''}
+      ${countries ? metaRow('Controls', countries) : ''}
       ${meta.resources ? metaRow('Resources', meta.resources) : ''}
       ${hexLinks ? metaRow('Territory', hexLinks) : ''}
       ${meta.mechManufacturer === true ? metaRow('Mech Mfr.', 'Yes') : ''}
@@ -95,8 +116,14 @@ function renderCharacter(meta, body) {
 
 const RENDERERS = {
   location: renderLocation,
+  country: renderCountry,
   faction: renderFaction,
   character: renderCharacter,
+};
+
+// Map a wiki type to its data sub-directory (handles irregular plural).
+const TYPE_DIR = {
+  location: 'locations', country: 'countries', faction: 'factions', character: 'characters',
 };
 
 export function initWiki(map, config) {
@@ -124,7 +151,7 @@ export function initWiki(map, config) {
     async _render(type, slug) {
       content.innerHTML = '<div style="color:var(--text-dim);font-size:12px;padding:20px">Loading…</div>';
       try {
-        const text = await fetch(`data/${type}s/${slug}.md`).then(r => {
+        const text = await fetch(`data/${TYPE_DIR[type] || type + 's'}/${slug}.md`).then(r => {
           if (!r.ok) throw new Error('Not found');
           return r.text();
         });
@@ -152,11 +179,12 @@ export function initWiki(map, config) {
       history.length = 0;
       content.innerHTML = `
         <div class="wiki-home">
-          <h1 class="planet-name">Vanities</h1>
+          <h1 class="planet-name">Vandyse</h1>
           <p class="planet-subtitle">Class: Terrestrial · Diameter: 10,230 km · Gravity: 1.05 G</p>
           <p class="planet-subtitle">Day: 28.7 hrs · Year: 421 Days · Population: 18.7 Billion</p>
           <div class="home-categories">
             <div class="home-category" data-category="locations"><span class="cat-icon">◎</span><span>Locations</span></div>
+            <div class="home-category" data-category="countries"><span class="cat-icon">▣</span><span>Countries</span></div>
             <div class="home-category" data-category="factions"><span class="cat-icon">⬡</span><span>Factions</span></div>
             <div class="home-category" data-category="characters"><span class="cat-icon">◈</span><span>Characters</span></div>
           </div>
@@ -169,7 +197,8 @@ export function initWiki(map, config) {
       history.length = 0;
       try {
         const index = await fetch(`data/${category}/index.json`).then(r => r.json());
-        const typeKey = category.slice(0, -1); // remove trailing 's'
+        const SING = { locations: 'location', countries: 'country', factions: 'faction', characters: 'character' };
+        const typeKey = SING[category] || category.slice(0, -1);
         const items = index.map(item => `
           <div class="category-list-item" data-type="${typeKey}" data-slug="${item.id}">
             <span class="item-title">${item.title}</span>

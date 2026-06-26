@@ -1,13 +1,6 @@
 [
-  { "id": "northreach-confederacy", "title": "Northreach Confederacy", "tags": ["agricultural", "northern", "confederacy"] },
-  { "id": "veltora-federation", "title": "Veltora Federation", "tags": ["industrial", "corporate", "federation"] },
-  { "id": "smogspire-union", "title": "Smogspire Union", "tags": ["industrial", "urban", "union"] },
-  { "id": "duneward-coalition", "title": "The Duneward Coalition", "tags": ["desert", "plains", "coalition"] },
-  { "id": "greenvale-republic", "title": "Greenvale Republic", "tags": ["agricultural", "heartland", "republic"] },
-  { "id": "farreach-league", "title": "Farreach League", "tags": ["frontier", "eastern", "league"] },
-  { "id": "stoneview-commonwealth", "title": "Stoneview Commonwealth", "tags": ["mountain", "highland", "commonwealth"] },
-  { "id": "brightmarch-union", "title": "Brightmarch Union", "tags": ["urban", "central", "union"] },
-  { "id": "rustcoast-confederacy", "title": "Rustcoast Confederacy", "tags": ["coastal", "maritime", "confederacy"] },
-  { "id": "lakeside-union", "title": "Lakeside Union", "tags": ["water", "lake", "union"] },
-  { "id": "southpoint-league", "title": "Southpoint League", "tags": ["islands", "temperate", "league"] }
+  { "id": "caladrius", "title": "Caladrius", "tags": ["orbital", "industrial", "starfaring"] },
+  { "id": "concord", "title": "Concord of Free States", "tags": ["agricultural", "democratic"] },
+  { "id": "iron-accord", "title": "Iron Accord", "tags": ["frontier", "industrial"] },
+  { "id": "highland-league", "title": "Highland League", "tags": ["mountain", "frontier"] }
 ]

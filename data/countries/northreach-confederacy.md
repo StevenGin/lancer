@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Northreach Confederacy
+controllingFaction: concord
 shortName: NRC
 allegiance: Union-aligned
 territory: ["0707", "0607", "0807", "0708"]
@@ -11,7 +12,7 @@ status: active
 
 ## Overview
 
-The Northreach Confederacy is a federation of agricultural provinces occupying the planet's northern mid-latitudes. Governed by a senate of elected provincial representatives, the Confederacy is one of the more stable and democratic governments on Vanities. Its vast grain production makes it economically vital and politically influential.
+The Northreach Confederacy is a federation of agricultural provinces occupying the planet's northern mid-latitudes. Governed by a senate of elected provincial representatives, the Confederacy is one of the more stable and democratic governments on Vandyse. Its vast grain production makes it economically vital and politically influential.
 
 ## Military
 

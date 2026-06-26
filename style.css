@@ -177,6 +177,7 @@ html, body {
 }
 
 .badge-location { background: #1a3a5e; color: var(--location); }
+.badge-country { background: #2a2440; color: #b9a0e8; }
 .badge-faction { background: #3a2800; color: var(--faction); }
 .badge-character { background: #0d3020; color: var(--character); }
 
@@ -456,6 +457,32 @@ html, body {
   inset: 0;
   z-index: 5;
   pointer-events: none;
+}
+
+/* ── Orbiting starship ── */
+#orbit-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+#starship {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  cursor: pointer;
+  filter: drop-shadow(0 0 6px rgba(120,180,255,0.5));
+  transition: transform 0.15s;
+}
+#starship:hover { transform: translate(-50%, -50%) scale(1.12); }
+#starship .ship-label {
+  text-align: center;
+  font-family: 'Courier New', monospace;
+  font-size: 8px;
+  letter-spacing: 0.15em;
+  color: #bcd4f5;
+  text-shadow: 0 0 4px #000, 0 1px 2px #000;
+  margin-top: 1px;
 }
 
 /* ── Faction name labels (centred on territory centroids) ── */

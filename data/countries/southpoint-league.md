@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Southpoint League
+controllingFaction: concord
 shortName: SPL
 allegiance: independent
 territory: ["1227", "1127", "1327", "1228"]
@@ -11,7 +12,7 @@ status: active
 
 ## Overview
 
-The Southpoint League governs the temperate southern islands, the most climatically pleasant region of Vanities. The League has leveraged its neutral geographic position — far from the major industrial conflicts — into a thriving trade and diplomatic hub. Oakhaven hosts more neutral negotiations and trade summits than any other city on the planet.
+The Southpoint League governs the temperate southern islands, the most climatically pleasant region of Vandyse. The League has leveraged its neutral geographic position — far from the major industrial conflicts — into a thriving trade and diplomatic hub. Oakhaven hosts more neutral negotiations and trade summits than any other city on the planet.
 
 ## Military
 

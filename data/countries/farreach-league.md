@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Farreach League
+controllingFaction: highland-league
 shortName: FRL
 allegiance: independent
 territory: ["1717", "2114", "1617", "1817"]
@@ -11,7 +12,7 @@ status: active
 
 ## Overview
 
-The Farreach League is a loose confederation of frontier settlements in the eastern reaches of the continent. Geographically remote and resource-poor, the League has survived through fierce independence, an exceptional ranger corps, and careful diplomacy that keeps the larger powers from agreeing on how to carve it up. The League's rangers are considered among the finest light-mech pilots on Vanities.
+The Farreach League is a loose confederation of frontier settlements in the eastern reaches of the continent. Geographically remote and resource-poor, the League has survived through fierce independence, an exceptional ranger corps, and careful diplomacy that keeps the larger powers from agreeing on how to carve it up. The League's rangers are considered among the finest light-mech pilots on Vandyse.
 
 ## Military
 

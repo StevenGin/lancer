@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Greenvale Republic
+controllingFaction: concord
 shortName: GVR
 allegiance: Union-aligned
 territory: ["1113", "1418", "1213", "1318"]
@@ -11,7 +12,7 @@ status: active
 
 ## Overview
 
-The Greenvale Republic is the agricultural heartland of Vanities, producing the majority of the planet's food supply. A democratic republic with strong civil institutions, Greenvale is one of the more peaceful and prosperous nations on the planet — a fact that makes it a constant target for economic pressure from more powerful neighbors.
+The Greenvale Republic is the agricultural heartland of Vandyse, producing the majority of the planet's food supply. A democratic republic with strong civil institutions, Greenvale is one of the more peaceful and prosperous nations on the planet — a fact that makes it a constant target for economic pressure from more powerful neighbors.
 
 ## Military
 

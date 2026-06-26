@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Lakeside Union
+controllingFaction: highland-league
 shortName: LU
 allegiance: Union-aligned
 territory: ["1822", "2126", "1922", "1823"]

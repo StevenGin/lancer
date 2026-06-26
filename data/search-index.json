@@ -32,7 +32,7 @@
     "type": "location",
     "title": "DSU Hub (Union Station)",
     "tags": [],
-    "excerpt": "Overview The DSU Hub is the primary Union presence on Vanities — a sprawling administrative and transit center anchoring the planet's orbital tether. The Union of Stations (DSU) uses this hub to coord"
+    "excerpt": "Overview The DSU Hub is the primary Union presence on Vandyse — a sprawling administrative and transit center anchoring the planet's orbital tether. The Union of Stations (DSU) uses this hub to coordi"
   },
   {
     "id": "dunegate",
@@ -67,7 +67,7 @@
     "type": "location",
     "title": "Iceview",
     "tags": [],
-    "excerpt": "Overview A remote outpost town in the Frosthold polar region, Iceview exists primarily to service the scientific and military installations monitoring Vanities' polar ice shelf. The town is named for "
+    "excerpt": "Overview A remote outpost town in the Frosthold polar region, Iceview exists primarily to service the scientific and military installations monitoring Vandyse' polar ice shelf. The town is named for t"
   },
   {
     "id": "lakeside",
@@ -130,7 +130,7 @@
     "type": "location",
     "title": "Veltora City",
     "tags": [],
-    "excerpt": "Overview The largest city on Vanities and capital of the Veltora Federation. Veltora City is the industrial heart of the planet — a vast sprawl of fabrication plants, mech foundries, and corporate arc"
+    "excerpt": "Overview The largest city on Vandyse and capital of the Veltora Federation. Veltora City is the industrial heart of the planet — a vast sprawl of fabrication plants, mech foundries, and corporate arco"
   },
   {
     "id": "whiteholm",
@@ -141,79 +141,123 @@
   },
   {
     "id": "brightmarch-union",
-    "type": "faction",
+    "type": "country",
     "title": "Brightmarch Union",
     "tags": [],
     "excerpt": "Overview The Brightmarch Union is a militaristic state occupying the strategic central corridor between the desert west and the agricultural heartland. Control of Dunegate Pass gives the Union enormou"
   },
   {
     "id": "duneward-coalition",
-    "type": "faction",
+    "type": "country",
     "title": "The Duneward Coalition",
     "tags": [],
-    "excerpt": "Overview The Duneward Coalition governs the vast desert plains of Vanities' western continent. A confederation of city-states and nomadic groups bound by common need rather than common culture, the Co"
+    "excerpt": "Overview The Duneward Coalition governs the vast desert plains of Vandyse' western continent. A confederation of city-states and nomadic groups bound by common need rather than common culture, the Coa"
   },
   {
     "id": "farreach-league",
-    "type": "faction",
+    "type": "country",
     "title": "Farreach League",
     "tags": [],
     "excerpt": "Overview The Farreach League is a loose confederation of frontier settlements in the eastern reaches of the continent. Geographically remote and resource-poor, the League has survived through fierce i"
   },
   {
     "id": "greenvale-republic",
-    "type": "faction",
+    "type": "country",
     "title": "Greenvale Republic",
     "tags": [],
-    "excerpt": "Overview The Greenvale Republic is the agricultural heartland of Vanities, producing the majority of the planet's food supply. A democratic republic with strong civil institutions, Greenvale is one of"
+    "excerpt": "Overview The Greenvale Republic is the agricultural heartland of Vandyse, producing the majority of the planet's food supply. A democratic republic with strong civil institutions, Greenvale is one of "
   },
   {
     "id": "lakeside-union",
-    "type": "faction",
+    "type": "country",
     "title": "Lakeside Union",
     "tags": [],
     "excerpt": "Overview The Lakeside Union governs the territories surrounding the great inland lake and the eastern coast. A trading nation that leverages its position between the interior lake and the Eastern Sea,"
   },
   {
     "id": "northreach-confederacy",
-    "type": "faction",
+    "type": "country",
     "title": "Northreach Confederacy",
     "tags": [],
     "excerpt": "Overview The Northreach Confederacy is a federation of agricultural provinces occupying the planet's northern mid-latitudes. Governed by a senate of elected provincial representatives, the Confederacy"
   },
   {
     "id": "rustcoast-confederacy",
-    "type": "faction",
+    "type": "country",
     "title": "Rustcoast Confederacy",
     "tags": [],
     "excerpt": "Overview The Rustcoast Confederacy governs the western coastal cities, from Port Ember in the north to Coralhold in the south. A maritime nation built on trade, privateering, and coastal industry, the"
   },
   {
     "id": "smogspire-union",
-    "type": "faction",
+    "type": "country",
     "title": "Smogspire Union",
     "tags": [],
     "excerpt": "Overview The Smogspire Union is an industrial city-state alliance in the northeastern highlands. Heavily polluted but economically productive, the Union has leveraged its mineral wealth and manufactur"
   },
   {
     "id": "southpoint-league",
-    "type": "faction",
+    "type": "country",
     "title": "Southpoint League",
     "tags": [],
-    "excerpt": "Overview The Southpoint League governs the temperate southern islands, the most climatically pleasant region of Vanities. The League has leveraged its neutral geographic position — far from the major "
+    "excerpt": "Overview The Southpoint League governs the temperate southern islands, the most climatically pleasant region of Vandyse. The League has leveraged its neutral geographic position — far from the major i"
   },
   {
     "id": "stoneview-commonwealth",
-    "type": "faction",
+    "type": "country",
     "title": "Stoneview Commonwealth",
     "tags": [],
     "excerpt": "Overview The Stoneview Commonwealth governs the eastern highland and mountain states. Its rugged terrain and mineral wealth have made it prosperous but difficult to govern. The Commonwealth is formall"
   },
   {
     "id": "veltora-federation",
-    "type": "faction",
+    "type": "country",
     "title": "Veltora Federation",
     "tags": [],
-    "excerpt": "Overview The Veltora Federation is the most industrially powerful nation on Vanities. A corporate-parliamentary hybrid government, the Federation is driven by industrial output above all else. Its fac"
+    "excerpt": "Overview The Veltora Federation is the most industrially powerful nation on Vandyse. A corporate-parliamentary hybrid government, the Federation is driven by industrial output above all else. Its fact"
+  },
+  {
+    "id": "caladrius",
+    "type": "faction",
+    "title": "Caladrius",
+    "tags": [
+      "orbital",
+      "industrial",
+      "starfaring"
+    ],
+    "excerpt": "Overview Caladrius is the orbital power that holds Vandyse's industrial heartland. Operating from the deep-space carrier Caladrius — a stationary vessel parked in geosynchronous orbit above the Veltor"
+  },
+  {
+    "id": "concord",
+    "type": "faction",
+    "title": "Concord of Free States",
+    "tags": [
+      "agricultural",
+      "democratic",
+      "coalition"
+    ],
+    "excerpt": "Overview The Concord of Free States is a democratic bloc uniting Vandyse's great agricultural nations. It guarantees mutual defence and free grain trade between the Northreach Confederacy, the Greenva"
+  },
+  {
+    "id": "highland-league",
+    "type": "faction",
+    "title": "Highland League",
+    "tags": [
+      "mountain",
+      "frontier",
+      "league"
+    ],
+    "excerpt": "Overview The Highland League governs Vandyse's rugged eastern interior. A loose commonwealth of mountain and lake states, it unites the Stoneview Commonwealth, the Farreach League and the Lakeside Uni"
+  },
+  {
+    "id": "iron-accord",
+    "type": "faction",
+    "title": "Iron Accord",
+    "tags": [
+      "frontier",
+      "industrial",
+      "militant"
+    ],
+    "excerpt": "Overview The Iron Accord is a hard-bitten pact of frontier and coastal states forged from necessity rather than ideology. It binds the Duneward Coalition, the Rustcoast Confederacy and the Brightmarch"
   }
 ]

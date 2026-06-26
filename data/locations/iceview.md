@@ -11,7 +11,7 @@ notableFeatures: [Polar Research Station, Frosthold Transit Hub, Ice Shelf Obser
 
 ## Overview
 
-A remote outpost town in the Frosthold polar region, Iceview exists primarily to service the scientific and military installations monitoring Vanities' polar ice shelf. The town is named for the spectacular view of the ice shelf from its elevated central district.
+A remote outpost town in the Frosthold polar region, Iceview exists primarily to service the scientific and military installations monitoring Vandyse' polar ice shelf. The town is named for the spectacular view of the ice shelf from its elevated central district.
 
 ## Notes
 

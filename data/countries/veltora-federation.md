@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Veltora Federation
+controllingFaction: caladrius
 shortName: VF
 allegiance: independent
 territory: ["1611", "2004", "1511", "1711"]
@@ -11,7 +12,7 @@ status: active
 
 ## Overview
 
-The Veltora Federation is the most industrially powerful nation on Vanities. A corporate-parliamentary hybrid government, the Federation is driven by industrial output above all else. Its factories produce everything from agricultural equipment to military-grade mech frames, and its economic reach extends far beyond its formal borders.
+The Veltora Federation is the most industrially powerful nation on Vandyse. A corporate-parliamentary hybrid government, the Federation is driven by industrial output above all else. Its factories produce everything from agricultural equipment to military-grade mech frames, and its economic reach extends far beyond its formal borders.
 
 ## Military
 

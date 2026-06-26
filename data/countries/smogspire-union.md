@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Smogspire Union
+controllingFaction: caladrius
 shortName: SU
 allegiance: independent
 territory: ["2309", "2209", "2409", "2310"]

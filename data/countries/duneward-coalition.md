@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: The Duneward Coalition
+controllingFaction: iron-accord
 shortName: DC
 allegiance: Union-aligned
 territory: ["0216", "0310", "0414", "0315"]
@@ -11,7 +12,7 @@ status: active
 
 ## Overview
 
-The Duneward Coalition governs the vast desert plains of Vanities' western continent. A confederation of city-states and nomadic groups bound by common need rather than common culture, the Coalition is fractious internally but presents a unified front externally. The Union Station at DSU Hub gives the Coalition disproportionate political leverage.
+The Duneward Coalition governs the vast desert plains of Vandyse' western continent. A confederation of city-states and nomadic groups bound by common need rather than common culture, the Coalition is fractious internally but presents a unified front externally. The Union Station at DSU Hub gives the Coalition disproportionate political leverage.
 
 ## Military
 
