@@ -117,8 +117,8 @@ export async function initGlobe(container, config) {
   }
   // Latitude bands, with a per-column wobble so the ice / water boundary is not
   // a perfectly straight line of latitude.
-  const ICE_LAT = 43;    // base |lat| for ice
-  const MOAT_LAT = 36;   // base |lat| for the separating water ring
+  const ICE_LAT = 47;    // base |lat| for ice
+  const MOAT_LAT = 40;   // base |lat| for the separating water ring
   const lookup = new Map();
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
@@ -385,7 +385,7 @@ export async function initGlobe(container, config) {
     // A slightly wavy lower edge keeps the cap from being a perfect circle.
     const capWhite = '#f4f9ff';
     function paintCap(north) {
-      const edgeLat = 47;              // where the solid white starts to fade
+      const edgeLat = 51;              // where the solid white starts to fade
       const baseY = latToY(north ? edgeLat : -edgeLat);
       const poleY = north ? 0 : TH;
       const grad = ctx.createLinearGradient(0, poleY, 0, baseY);
@@ -515,10 +515,34 @@ export async function initGlobe(container, config) {
   let autoRotate = true;    // spins until the first east-west drag
   let pins = [];
 
+  // Snap a hex address to the nearest land hex so no city ends up in the sea/ice.
+  const isLand = (c, r) => {
+    const d = cell(c, r);
+    return d && d.terrain !== 'ocean' && d.terrain !== 'ice';
+  };
+  function snapToLand(col, row) {
+    if (isLand(col, row)) return [wrapCol(col), row];
+    for (let rad = 1; rad <= 5; rad++) {
+      let best = null, bestD = Infinity;
+      for (let dr = -rad; dr <= rad; dr++) {
+        for (let dc = -rad; dc <= rad; dc++) {
+          if (Math.max(Math.abs(dr), Math.abs(dc)) !== rad) continue;
+          const r = row + dr, c = col + dc;
+          if (r < 0 || r >= ROWS || !isLand(c, r)) continue;
+          const d = dr * dr + dc * dc;
+          if (d < bestD) { bestD = d; best = [wrapCol(c), r]; }
+        }
+      }
+      if (best) return best;
+    }
+    return [wrapCol(col), row];
+  }
+
   function setPins(pinData, onClick) {
     pinLayer.innerHTML = '';
     pins = pinData.map(pin => {
-      const [col, row] = [parseInt(pin.hexAddress.slice(0, 2)), parseInt(pin.hexAddress.slice(2, 4))];
+      const [c0, r0] = [parseInt(pin.hexAddress.slice(0, 2)), parseInt(pin.hexAddress.slice(2, 4))];
+      const [col, row] = snapToLand(c0, r0);
       const el = document.createElement('div');
       el.className = `pin pin-${pin.type}`;
       const c = TYPE_COLORS[pin.type] || '#fff';
@@ -599,7 +623,7 @@ export async function initGlobe(container, config) {
     sphere.updateMatrixWorld();
     updateShip();
     const showCities = camZ < CITY_SHOW;
-    const showNations = camZ > NATION_HIDE;
+    const showNations = true; // country labels are always visible
     for (const { el, local } of pins) {
       const p = showCities ? projectLocal(local) : null;
       if (!p) { el.style.display = 'none'; continue; }
