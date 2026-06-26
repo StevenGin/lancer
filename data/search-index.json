@@ -1,0 +1,219 @@
+[
+  {
+    "id": "brightwall",
+    "type": "location",
+    "title": "Brightwall",
+    "tags": [],
+    "excerpt": "Overview Capital of the Brightmarch Union and home of the famous defensive wall that gave the city its name. Brightwall sits at a strategic chokepoint between the Duneward plains and the Greenvale agr"
+  },
+  {
+    "id": "cindermark",
+    "type": "location",
+    "title": "Cindermark",
+    "tags": [],
+    "excerpt": "Overview A major industrial city in the eastern Veltora Federation territory. Cindermark processes raw ore shipments from the Stoneview highlands and feeds refined materials to the factories of Veltor"
+  },
+  {
+    "id": "coralhold",
+    "type": "location",
+    "title": "Coralhold",
+    "tags": [],
+    "excerpt": "Overview A coastal city built on and around a massive coral reef formation, Coralhold is a major port and salvage hub for the Rustcoast Confederacy's southern territory. Structures extend out over the"
+  },
+  {
+    "id": "corvida",
+    "type": "location",
+    "title": "Corvida",
+    "tags": [],
+    "excerpt": "Overview A coastal city on the Eastern Sea under Lakeside Union jurisdiction. Corvida is primarily a fishing and aquaculture hub, its fleets venturing far into the Eastern Sea. The city is frequently "
+  },
+  {
+    "id": "dsu-hub",
+    "type": "location",
+    "title": "DSU Hub (Union Station)",
+    "tags": [],
+    "excerpt": "Overview The DSU Hub is the primary Union presence on Vanities — a sprawling administrative and transit center anchoring the planet's orbital tether. The Union of Stations (DSU) uses this hub to coord"
+  },
+  {
+    "id": "dunegate",
+    "type": "location",
+    "title": "Dunegate",
+    "tags": [],
+    "excerpt": "Overview Dunegate sits at the only navigable mountain pass connecting the Duneward desert plains to the central agricultural regions. Whoever controls Dunegate controls the flow of goods between the w"
+  },
+  {
+    "id": "eastwatch",
+    "type": "location",
+    "title": "Eastwatch",
+    "tags": [],
+    "excerpt": "Overview The largest city of the Stoneview Commonwealth, Eastwatch sits on a dramatic coastal cliff overlooking the Eastern Sea. Its lighthouse array guides shipping through the treacherous coastal re"
+  },
+  {
+    "id": "farreach",
+    "type": "location",
+    "title": "Farreach",
+    "tags": [],
+    "excerpt": "Overview The capital of the Farreach League — a loose confederation of frontier settlements that maintains independence through geographic remoteness and a formidable ranger corps. Farreach itself is "
+  },
+  {
+    "id": "hearthfield",
+    "type": "location",
+    "title": "Hearthfield",
+    "tags": [],
+    "excerpt": "Overview One of the Greenvale Republic's primary agricultural research cities. Hearthfield houses the continent's largest seed vault and the Agricultural Research Institute, which develops crop strain"
+  },
+  {
+    "id": "iceview",
+    "type": "location",
+    "title": "Iceview",
+    "tags": [],
+    "excerpt": "Overview A remote outpost town in the Frosthold polar region, Iceview exists primarily to service the scientific and military installations monitoring Vanities' polar ice shelf. The town is named for "
+  },
+  {
+    "id": "lakeside",
+    "type": "location",
+    "title": "Lakeside",
+    "tags": [],
+    "excerpt": "Overview The administrative capital of the Lakeside Union, built along the shores of the great inland lake that defines the region. Lakeside's economy centers on freshwater fishing, lake transport, an"
+  },
+  {
+    "id": "meadowbridge",
+    "type": "location",
+    "title": "Meadowbridge",
+    "tags": [],
+    "excerpt": "Overview Named for the ancient stone bridge spanning the Great Meadow River, Meadowbridge is a prosperous inland trading city at the heart of the Greenvale Republic. Agricultural goods from across the"
+  },
+  {
+    "id": "nortreach-city",
+    "type": "location",
+    "title": "Nortreach City",
+    "tags": [],
+    "excerpt": "Overview Nortreach City serves as the capital of the Northreach Confederacy, a sprawling agrarian nation occupying the planet's northern mid-latitudes. The city sits at the junction of three major riv"
+  },
+  {
+    "id": "oakhaven",
+    "type": "location",
+    "title": "Oakhaven",
+    "tags": [],
+    "excerpt": "Overview The primary city of the Southpoint League and a major hub for equatorial trade. Oakhaven benefits from the temperate island climate and serves as a neutral trading port for factions that cann"
+  },
+  {
+    "id": "port-ember",
+    "type": "location",
+    "title": "Port Ember",
+    "tags": [],
+    "excerpt": "Overview Port Ember is the largest coastal city of the Rustcoast Confederacy and the primary naval and trade port on the western seaboard. The city's shipyards produce both civilian freighters and mil"
+  },
+  {
+    "id": "rangers-workshop",
+    "type": "location",
+    "title": "Ranger's Workshop",
+    "tags": [],
+    "excerpt": "Overview A fortified outpost and supply depot operated by the Farreach League's Ranger Corps. Located on the contested border between Farreach League and Stoneview Commonwealth territory, the Workshop"
+  },
+  {
+    "id": "saitan-clan",
+    "type": "location",
+    "title": "The Saitan Clan",
+    "tags": [],
+    "excerpt": "Overview Not a fixed settlement, but the marked territory of the Saitan Clan — a powerful nomadic confederation that roams the deep desert of the Duneward Coalition. The Saitan Clan occupies an uneasy"
+  },
+  {
+    "id": "smogspire",
+    "type": "location",
+    "title": "Smogspire",
+    "tags": [],
+    "excerpt": "Overview Named for the vast industrial chimneys that define its skyline, Smogspire is the capital of the Smogspire Union and one of the most heavily industrialized cities on the planet. The population"
+  },
+  {
+    "id": "veltora-city",
+    "type": "location",
+    "title": "Veltora City",
+    "tags": [],
+    "excerpt": "Overview The largest city on Vanities and capital of the Veltora Federation. Veltora City is the industrial heart of the planet — a vast sprawl of fabrication plants, mech foundries, and corporate arc"
+  },
+  {
+    "id": "whiteholm",
+    "type": "location",
+    "title": "Whiteholm",
+    "tags": [],
+    "excerpt": "Overview A desert outpost city at the western edge of the Duneward Coalition's territory, Whiteholm sits atop one of the largest underground aquifer systems on the continent. Its water processing faci"
+  },
+  {
+    "id": "brightmarch-union",
+    "type": "faction",
+    "title": "Brightmarch Union",
+    "tags": [],
+    "excerpt": "Overview The Brightmarch Union is a militaristic state occupying the strategic central corridor between the desert west and the agricultural heartland. Control of Dunegate Pass gives the Union enormou"
+  },
+  {
+    "id": "duneward-coalition",
+    "type": "faction",
+    "title": "The Duneward Coalition",
+    "tags": [],
+    "excerpt": "Overview The Duneward Coalition governs the vast desert plains of Vanities' western continent. A confederation of city-states and nomadic groups bound by common need rather than common culture, the Co"
+  },
+  {
+    "id": "farreach-league",
+    "type": "faction",
+    "title": "Farreach League",
+    "tags": [],
+    "excerpt": "Overview The Farreach League is a loose confederation of frontier settlements in the eastern reaches of the continent. Geographically remote and resource-poor, the League has survived through fierce i"
+  },
+  {
+    "id": "greenvale-republic",
+    "type": "faction",
+    "title": "Greenvale Republic",
+    "tags": [],
+    "excerpt": "Overview The Greenvale Republic is the agricultural heartland of Vanities, producing the majority of the planet's food supply. A democratic republic with strong civil institutions, Greenvale is one of"
+  },
+  {
+    "id": "lakeside-union",
+    "type": "faction",
+    "title": "Lakeside Union",
+    "tags": [],
+    "excerpt": "Overview The Lakeside Union governs the territories surrounding the great inland lake and the eastern coast. A trading nation that leverages its position between the interior lake and the Eastern Sea,"
+  },
+  {
+    "id": "northreach-confederacy",
+    "type": "faction",
+    "title": "Northreach Confederacy",
+    "tags": [],
+    "excerpt": "Overview The Northreach Confederacy is a federation of agricultural provinces occupying the planet's northern mid-latitudes. Governed by a senate of elected provincial representatives, the Confederacy"
+  },
+  {
+    "id": "rustcoast-confederacy",
+    "type": "faction",
+    "title": "Rustcoast Confederacy",
+    "tags": [],
+    "excerpt": "Overview The Rustcoast Confederacy governs the western coastal cities, from Port Ember in the north to Coralhold in the south. A maritime nation built on trade, privateering, and coastal industry, the"
+  },
+  {
+    "id": "smogspire-union",
+    "type": "faction",
+    "title": "Smogspire Union",
+    "tags": [],
+    "excerpt": "Overview The Smogspire Union is an industrial city-state alliance in the northeastern highlands. Heavily polluted but economically productive, the Union has leveraged its mineral wealth and manufactur"
+  },
+  {
+    "id": "southpoint-league",
+    "type": "faction",
+    "title": "Southpoint League",
+    "tags": [],
+    "excerpt": "Overview The Southpoint League governs the temperate southern islands, the most climatically pleasant region of Vanities. The League has leveraged its neutral geographic position — far from the major "
+  },
+  {
+    "id": "stoneview-commonwealth",
+    "type": "faction",
+    "title": "Stoneview Commonwealth",
+    "tags": [],
+    "excerpt": "Overview The Stoneview Commonwealth governs the eastern highland and mountain states. Its rugged terrain and mineral wealth have made it prosperous but difficult to govern. The Commonwealth is formall"
+  },
+  {
+    "id": "veltora-federation",
+    "type": "faction",
+    "title": "Veltora Federation",
+    "tags": [],
+    "excerpt": "Overview The Veltora Federation is the most industrially powerful nation on Vanities. A corporate-parliamentary hybrid government, the Federation is driven by industrial output above all else. Its fac"
+  }
+]

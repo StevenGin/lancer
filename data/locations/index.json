@@ -1,0 +1,22 @@
+[
+  { "id": "iceview", "title": "Iceview", "tags": ["town", "tundra", "Frosthold"] },
+  { "id": "cindermark", "title": "Cindermark", "tags": ["city", "industrial", "Veltora Federation"] },
+  { "id": "nortreach-city", "title": "Nortreach City", "tags": ["capital", "agricultural", "Northreach Confederacy"] },
+  { "id": "veltora-city", "title": "Veltora City", "tags": ["capital", "industrial", "Veltora Federation"] },
+  { "id": "smogspire", "title": "Smogspire", "tags": ["city", "industrial", "Smogspire Union"] },
+  { "id": "rangers-workshop", "title": "Ranger's Workshop", "tags": ["point of interest", "military", "Farreach League"] },
+  { "id": "whiteholm", "title": "Whiteholm", "tags": ["town", "desert", "Duneward Coalition"] },
+  { "id": "saitan-clan", "title": "The Saitan Clan", "tags": ["point of interest", "nomadic", "Duneward Coalition"] },
+  { "id": "dsu-hub", "title": "DSU Hub (Union Station)", "tags": ["capital", "Union Station", "Duneward Coalition"] },
+  { "id": "hearthfield", "title": "Hearthfield", "tags": ["town", "agricultural", "Greenvale Republic"] },
+  { "id": "dunegate", "title": "Dunegate", "tags": ["town", "border", "Brightmarch Union"] },
+  { "id": "meadowbridge", "title": "Meadowbridge", "tags": ["town", "agricultural", "Greenvale Republic"] },
+  { "id": "farreach", "title": "Farreach", "tags": ["capital", "frontier", "Farreach League"] },
+  { "id": "eastwatch", "title": "Eastwatch", "tags": ["city", "mountain", "Stoneview Commonwealth"] },
+  { "id": "port-ember", "title": "Port Ember", "tags": ["city", "coastal", "Rustcoast Confederacy"] },
+  { "id": "brightwall", "title": "Brightwall", "tags": ["capital", "urban", "Brightmarch Union"] },
+  { "id": "lakeside", "title": "Lakeside", "tags": ["city", "water", "Lakeside Union"] },
+  { "id": "coralhold", "title": "Coralhold", "tags": ["city", "coastal", "Rustcoast Confederacy"] },
+  { "id": "oakhaven", "title": "Oakhaven", "tags": ["city", "temperate", "Southpoint League"] },
+  { "id": "corvida", "title": "Corvida", "tags": ["city", "eastern sea", "Lakeside Union"] }
+]
