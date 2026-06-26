@@ -1,32 +1,24 @@
 [
-  { "terrain": "polar",     "label": "Frosthold",               "rMin": 2,  "rMax": 5,  "cMin": 7,  "cMax": 23 },
+  { "terrain": "desert",    "faction": "duneward-coalition",     "rMin": 8,  "rMax": 17, "cMin": 1,  "cMax": 8  },
+  { "terrain": "coastal",   "faction": "rustcoast-confederacy",  "rMin": 18, "rMax": 28, "cMin": 1,  "cMax": 7  },
 
-  { "terrain": "grassland", "faction": "northreach-confederacy", "rMin": 5,  "rMax": 11, "cMin": 4,  "cMax": 15 },
-  { "terrain": "industrial","faction": "veltora-federation",     "rMin": 4,  "rMax": 12, "cMin": 14, "cMax": 24 },
-  { "terrain": "industrial","faction": "smogspire-union",        "rMin": 5,  "rMax": 14, "cMin": 22, "cMax": 29 },
-  { "terrain": "desert",    "faction": "duneward-coalition",     "rMin": 9,  "rMax": 24, "cMin": 1,  "cMax": 10 },
-  { "terrain": "grassland", "faction": "greenvale-republic",     "rMin": 13, "rMax": 20, "cMin": 9,  "cMax": 16 },
-  { "terrain": "forest",    "faction": "farreach-league",        "rMin": 13, "rMax": 20, "cMin": 19, "cMax": 24 },
-  { "terrain": "mountain",  "faction": "stoneview-commonwealth", "rMin": 13, "rMax": 22, "cMin": 24, "cMax": 30 },
-  { "terrain": "urban",     "faction": "brightmarch-union",      "rMin": 19, "rMax": 25, "cMin": 7,  "cMax": 15 },
-  { "terrain": "coastal",   "faction": "rustcoast-confederacy",  "rMin": 18, "rMax": 30, "cMin": 1,  "cMax": 7  },
-  { "terrain": "coastal",   "faction": "lakeside-union",         "rMin": 21, "rMax": 29, "cMin": 15, "cMax": 27 },
+  { "terrain": "grassland", "faction": "northreach-confederacy", "rMin": 6,  "rMax": 13, "cMin": 11, "cMax": 17 },
+  { "terrain": "industrial","faction": "veltora-federation",     "rMin": 5,  "rMax": 13, "cMin": 18, "cMax": 23 },
+  { "terrain": "industrial","faction": "smogspire-union",        "rMin": 6,  "rMax": 13, "cMin": 24, "cMax": 29 },
 
-  { "terrain": "grassland", "faction": "brightmarch-union",      "rMin": 26, "rMax": 30, "cMin": 9,  "cMax": 20 },
-  { "terrain": "grassland", "faction": "southpoint-league",      "rMin": 24, "rMax": 28, "cMin": 2,  "cMax": 6  },
+  { "terrain": "grassland", "faction": "greenvale-republic",     "rMin": 17, "rMax": 23, "cMin": 11, "cMax": 17 },
+  { "terrain": "urban",     "faction": "brightmarch-union",      "rMin": 24, "rMax": 29, "cMin": 10, "cMax": 18 },
+  { "terrain": "forest",    "faction": "farreach-league",        "rMin": 16, "rMax": 22, "cMin": 18, "cMax": 23 },
+  { "terrain": "mountain",  "faction": "stoneview-commonwealth", "rMin": 16, "rMax": 24, "cMin": 24, "cMax": 30 },
+  { "terrain": "coastal",   "faction": "lakeside-union",         "rMin": 23, "rMax": 29, "cMin": 19, "cMax": 29 },
 
-  { "terrain": "ocean",     "label": "Cerulean Sea",             "rMin": 10, "rMax": 13, "cMin": 5,  "cMax": 21 },
-  { "terrain": "ocean",     "label": "Silvermere Bay",           "rMin": 22, "rMax": 27, "cMin": 11, "cMax": 14 },
-  { "terrain": "ocean",     "label": "Eastern Sea",              "rMin": 16, "rMax": 25, "cMin": 31, "cMax": 31 },
-  { "terrain": "ocean",     "label": "Southern Straits",         "rMin": 31, "rMax": 34, "cMin": 8,  "cMax": 22 },
+  { "terrain": "grassland", "faction": "southpoint-league",      "rMin": 25, "rMax": 28, "cMin": 30, "cMax": 31 },
 
-  { "terrain": "ocean",     "label": "Median Channel",           "rMin": 11, "rMax": 24, "cMin": 17, "cMax": 18 },
-  { "terrain": "ocean",                                          "rMin": 14, "rMax": 24, "cMin": 11, "cMax": 12 },
-  { "terrain": "ocean",                                          "rMin": 23, "rMax": 31, "cMin": 8,  "cMax": 9  },
-  { "terrain": "ocean",     "label": "Stone Reach",              "rMin": 13, "rMax": 22, "cMin": 22, "cMax": 23 },
+  { "carve": true, "terrain": "ocean", "label": "West Channel",     "rMin": 5,  "rMax": 30, "cMin": 9,  "cMax": 10 },
+  { "carve": true, "terrain": "ocean", "label": "Northern Strait",  "rMin": 14, "rMax": 15, "cMin": 10, "cMax": 31 },
+  { "carve": true, "terrain": "ocean", "label": "Isle Strait",      "rMin": 24, "rMax": 29, "cMin": 29, "cMax": 29 },
 
-  { "terrain": "ocean",     "label": "Lake Verdant",             "rMin": 23, "rMax": 24, "cMin": 17, "cMax": 19 },
-  { "terrain": "ocean",     "label": "Lake Mistral",             "rMin": 25, "rMax": 27, "cMin": 21, "cMax": 22 },
-  { "terrain": "ocean",     "label": "Lake Hollow",              "rMin": 22, "rMax": 23, "cMin": 24, "cMax": 25 },
-  { "terrain": "ocean",                                          "rMin": 26, "rMax": 27, "cMin": 16, "cMax": 17 }
+  { "carve": true, "terrain": "ocean", "label": "Lake Verdant",     "rMin": 24, "rMax": 25, "cMin": 21, "cMax": 23 },
+  { "carve": true, "terrain": "ocean", "label": "Lake Mistral",     "rMin": 26, "rMax": 27, "cMin": 24, "cMax": 25 },
+  { "carve": true, "terrain": "ocean", "label": "Lake Hollow",      "rMin": 25, "rMax": 26, "cMin": 27, "cMax": 28 }
 ]

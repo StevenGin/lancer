@@ -1,201 +1,161 @@
 [
   {
     "id": "loc-iceview",
-    "hexAddress": "1403",
-    "pixelX": 520,
-    "pixelY": 110,
+    "hexAddress": "1207",
     "type": "location",
     "slug": "iceview",
     "label": "Iceview"
   },
   {
     "id": "loc-cindermark",
-    "hexAddress": "2004",
-    "pixelX": 710,
-    "pixelY": 140,
+    "hexAddress": "2006",
     "type": "location",
     "slug": "cindermark",
     "label": "Cindermark"
   },
   {
     "id": "loc-nortreach-city",
-    "hexAddress": "0707",
-    "pixelX": 277,
-    "pixelY": 240,
+    "hexAddress": "1409",
     "type": "location",
     "slug": "nortreach-city",
     "label": "Nortreach City"
   },
   {
     "id": "loc-veltora-city",
-    "hexAddress": "1611",
-    "pixelX": 605,
-    "pixelY": 355,
+    "hexAddress": "2008",
     "type": "location",
     "slug": "veltora-city",
     "label": "Veltora City"
   },
   {
     "id": "loc-smogspire",
-    "hexAddress": "2309",
-    "pixelX": 831,
-    "pixelY": 295,
+    "hexAddress": "2609",
     "type": "location",
     "slug": "smogspire",
     "label": "Smogspire"
   },
   {
     "id": "loc-rangers-workshop",
-    "hexAddress": "2114",
-    "pixelX": 745,
-    "pixelY": 425,
+    "hexAddress": "2117",
     "type": "location",
     "slug": "rangers-workshop",
     "label": "Ranger's Workshop"
   },
   {
     "id": "loc-whiteholm",
-    "hexAddress": "0310",
-    "pixelX": 121,
-    "pixelY": 315,
+    "hexAddress": "0412",
     "type": "location",
     "slug": "whiteholm",
     "label": "Whiteholm"
   },
   {
     "id": "loc-saitan-clan",
-    "hexAddress": "0414",
-    "pixelX": 156,
-    "pixelY": 435,
+    "hexAddress": "0515",
     "type": "location",
     "slug": "saitan-clan",
     "label": "The Saitan Clan"
   },
   {
     "id": "loc-dsu-hub",
-    "hexAddress": "0216",
-    "pixelX": 95,
-    "pixelY": 490,
+    "hexAddress": "0314",
     "type": "location",
     "slug": "dsu-hub",
     "label": "DSU Hub"
   },
   {
     "id": "loc-hearthfield",
-    "hexAddress": "1113",
-    "pixelX": 430,
-    "pixelY": 415,
+    "hexAddress": "1319",
     "type": "location",
     "slug": "hearthfield",
     "label": "Hearthfield"
   },
   {
     "id": "loc-dunegate",
-    "hexAddress": "0815",
-    "pixelX": 312,
-    "pixelY": 465,
+    "hexAddress": "0610",
     "type": "location",
     "slug": "dunegate",
     "label": "Dunegate"
   },
   {
     "id": "loc-meadowbridge",
-    "hexAddress": "1418",
-    "pixelX": 502,
-    "pixelY": 560,
+    "hexAddress": "1521",
     "type": "location",
     "slug": "meadowbridge",
     "label": "Meadowbridge"
   },
   {
     "id": "loc-farreach",
-    "hexAddress": "1717",
-    "pixelX": 624,
-    "pixelY": 530,
+    "hexAddress": "2019",
     "type": "location",
     "slug": "farreach",
     "label": "Farreach"
   },
   {
     "id": "loc-eastwatch",
-    "hexAddress": "2519",
-    "pixelX": 880,
-    "pixelY": 590,
+    "hexAddress": "2719",
     "type": "location",
     "slug": "eastwatch",
     "label": "Eastwatch"
   },
   {
     "id": "loc-port-ember",
-    "hexAddress": "0219",
-    "pixelX": 90,
-    "pixelY": 600,
+    "hexAddress": "0321",
     "type": "location",
     "slug": "port-ember",
     "label": "Port Ember"
   },
   {
     "id": "loc-brightwall",
-    "hexAddress": "1021",
-    "pixelX": 381,
-    "pixelY": 640,
+    "hexAddress": "1326",
     "type": "location",
     "slug": "brightwall",
     "label": "Brightwall"
   },
   {
     "id": "loc-lakeside",
-    "hexAddress": "1822",
-    "pixelX": 641,
-    "pixelY": 670,
+    "hexAddress": "2126",
     "type": "location",
     "slug": "lakeside",
     "label": "Lakeside"
   },
   {
     "id": "loc-coralhold",
-    "hexAddress": "0825",
-    "pixelX": 312,
-    "pixelY": 770,
+    "hexAddress": "0325",
     "type": "location",
     "slug": "coralhold",
     "label": "Coralhold"
   },
   {
     "id": "loc-oakhaven",
-    "hexAddress": "1227",
-    "pixelX": 450,
-    "pixelY": 815,
+    "hexAddress": "1527",
     "type": "location",
     "slug": "oakhaven",
     "label": "Oakhaven"
   },
   {
     "id": "loc-corvida",
-    "hexAddress": "2126",
-    "pixelX": 730,
-    "pixelY": 800,
+    "hexAddress": "2722",
     "type": "location",
     "slug": "corvida",
     "label": "Corvida"
   },
   {
     "id": "loc-ornament",
-    "hexAddress": "0516",
+    "hexAddress": "0513",
     "type": "location",
     "slug": "ornament",
     "label": "Ornament"
   },
   {
     "id": "loc-lyric",
-    "hexAddress": "2025",
+    "hexAddress": "2027",
     "type": "location",
     "slug": "lyric",
     "label": "Lyric"
   },
   {
     "id": "loc-new-ventis",
-    "hexAddress": "1808",
+    "hexAddress": "1910",
     "type": "location",
     "slug": "new-ventis",
     "label": "New Ventis"
