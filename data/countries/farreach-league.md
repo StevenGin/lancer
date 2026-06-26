@@ -1,7 +1,7 @@
 ---
 type: country
 title: Farreach League
-controllingFaction: highland-league
+controllingFaction: dsu
 shortName: FRL
 allegiance: independent
 territory: ["1717", "2114", "1617", "1817"]

@@ -4,19 +4,15 @@ title: Caladrius
 shortName: The Caladrius Compact
 allegiance: Union-aligned
 status: active
-controlledCountries: ["veltora-federation", "smogspire-union"]
-tags: ["orbital", "industrial", "starfaring"]
+controlledCountries: []
+tags: ["orbital", "neutral", "starfaring"]
 ---
 
 ## Overview
 
-**Caladrius** is the orbital power that holds Vandyse's industrial heartland. Operating from the deep-space carrier *Caladrius* — a stationary vessel parked in geosynchronous orbit above the Veltoran coast — the Compact projects authority over the planet's manufacturing belt without maintaining a large surface presence.
+**Caladrius** is the orbital carrier that hangs stationary above Vandyse — a fixed star that never sets. The Compact controls **no countries** on the surface. It is a neutral shipyard, customs house and waystation, leasing orbital lift and dry-dock capacity to whoever can pay.
 
-The Compact controls the **Veltora Federation** and the **Smogspire Union**, binding the two industrial states into a single export economy that supplies mech frames, reactors and orbital lift across the system.
-
-## The Carrier
-
-The *Caladrius* itself never moves. It functions as a shipyard, parliament and customs house in one. Surface citizens see it as a fixed star that never sets — a constant reminder of who controls the skies.
+Because it holds no territory, every surface power courts it and none controls it. The three planetary blocs — DSU, GSL and VLC — all maintain berths aboard the carrier, and all pretend the others do not.
 
 ## Notes
 

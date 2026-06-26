@@ -1,7 +1,7 @@
 ---
 type: country
 title: Southpoint League
-controllingFaction: concord
+controllingFaction: gsl
 shortName: SPL
 allegiance: independent
 territory: ["1227", "1127", "1327", "1228"]

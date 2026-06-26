@@ -3,66 +3,66 @@
     "id": "brightmarch-union",
     "title": "Brightmarch Union",
     "tags": [],
-    "controllingFaction": "iron-accord"
+    "controllingFaction": "dsu"
   },
   {
     "id": "duneward-coalition",
     "title": "The Duneward Coalition",
     "tags": [],
-    "controllingFaction": "iron-accord"
+    "controllingFaction": "dsu"
   },
   {
     "id": "farreach-league",
     "title": "Farreach League",
     "tags": [],
-    "controllingFaction": "highland-league"
+    "controllingFaction": "dsu"
   },
   {
     "id": "greenvale-republic",
     "title": "Greenvale Republic",
     "tags": [],
-    "controllingFaction": "concord"
+    "controllingFaction": "gsl"
   },
   {
     "id": "lakeside-union",
     "title": "Lakeside Union",
     "tags": [],
-    "controllingFaction": "highland-league"
+    "controllingFaction": "gsl"
   },
   {
     "id": "northreach-confederacy",
     "title": "Northreach Confederacy",
     "tags": [],
-    "controllingFaction": "concord"
+    "controllingFaction": "gsl"
   },
   {
     "id": "rustcoast-confederacy",
     "title": "Rustcoast Confederacy",
     "tags": [],
-    "controllingFaction": "iron-accord"
+    "controllingFaction": "dsu"
   },
   {
     "id": "smogspire-union",
     "title": "Smogspire Union",
     "tags": [],
-    "controllingFaction": "caladrius"
+    "controllingFaction": "vlc"
   },
   {
     "id": "southpoint-league",
     "title": "Southpoint League",
     "tags": [],
-    "controllingFaction": "concord"
+    "controllingFaction": "gsl"
   },
   {
     "id": "stoneview-commonwealth",
     "title": "Stoneview Commonwealth",
     "tags": [],
-    "controllingFaction": "highland-league"
+    "controllingFaction": "vlc"
   },
   {
     "id": "veltora-federation",
     "title": "Veltora Federation",
     "tags": [],
-    "controllingFaction": "caladrius"
+    "controllingFaction": "vlc"
   }
 ]

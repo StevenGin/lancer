@@ -178,5 +178,26 @@
     "type": "location",
     "slug": "corvida",
     "label": "Corvida"
+  },
+  {
+    "id": "loc-ornament",
+    "hexAddress": "0516",
+    "type": "location",
+    "slug": "ornament",
+    "label": "Ornament"
+  },
+  {
+    "id": "loc-lyric",
+    "hexAddress": "2025",
+    "type": "location",
+    "slug": "lyric",
+    "label": "Lyric"
+  },
+  {
+    "id": "loc-new-ventis",
+    "hexAddress": "1808",
+    "type": "location",
+    "slug": "new-ventis",
+    "label": "New Ventis"
   }
 ]

@@ -1,7 +1,7 @@
 ---
 type: country
 title: Northreach Confederacy
-controllingFaction: concord
+controllingFaction: gsl
 shortName: NRC
 allegiance: Union-aligned
 territory: ["0707", "0607", "0807", "0708"]
