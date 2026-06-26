@@ -30,17 +30,18 @@ const FACTION_LABEL = {
   'southpoint-league':      'Southpoint\nLeague',
 };
 
-// Physical terrain colours (tint-off mode).
+// Physical terrain colours (default view) — natural earth tones.
 const TERRAIN_COLOR = {
-  ocean:      [30, 80, 130],
-  polar:      [215, 228, 236],
-  grassland:  [100, 135, 72],
-  forest:     [58, 92, 52],
-  desert:     [195, 168, 105],
-  mountain:   [138, 120, 92],
-  industrial: [78, 72, 86],
-  urban:      [95, 78, 102],
-  coastal:    [75, 138, 148],
+  ocean:      [36, 92, 142],
+  ice:        [234, 242, 248],
+  polar:      [206, 222, 232],
+  grassland:  [126, 156, 86],
+  forest:     [70, 104, 60],
+  desert:     [208, 184, 124],
+  mountain:   [156, 142, 118],
+  industrial: [122, 116, 106],
+  urban:      [138, 126, 110],
+  coastal:    [150, 172, 122],
 };
 
 // ── Value-noise (fbm) – no deps ───────────────────────────────────────────────
@@ -111,10 +112,16 @@ export async function initGlobe(container, config) {
     }
     return entry;
   }
+  // Above this latitude the surface is polar ice — actual white hexes, no content.
+  const ICE_LAT = 44;
   const lookup = new Map();
-  for (let row = 0; row < ROWS; row++)
-    for (let col = 0; col < COLS; col++)
-      lookup.set(`${col},${row}`, sampleZone(col, row));
+  for (let row = 0; row < ROWS; row++) {
+    for (let col = 0; col < COLS; col++) {
+      const lat = hexCenter(col, row)[1];
+      if (Math.abs(lat) >= ICE_LAT) lookup.set(`${col},${row}`, { terrain: 'ice', faction: null });
+      else lookup.set(`${col},${row}`, sampleZone(col, row));
+    }
+  }
 
   // ── Faction centroids (for labels) ────────────────────────────────────────
   const factionCentroids = new Map();
@@ -132,13 +139,34 @@ export async function initGlobe(container, config) {
   }
 
   // ── Texture baking ──────────────────────────────────────────────────────────
-  const TW = 4096, TH = 2048;
+  const TW = 8192, TH = 4096;
+  const SCALE = TW / 4096;  // line widths scale with resolution
   const lngToX = lng => ((lng + 180) / 360) * TW;
   const latToY = lat => ((90 - lat) / 180) * TH;
 
   const noiseA = makeNoise(73);
   const noiseB = makeNoise(131);
-  const noiseC = makeNoise(47);
+
+  // Pre-render a painterly noise tile once; applied as a soft-light overlay
+  // (far cheaper than a per-pixel loop over the full 8K texture).
+  const noiseTile = (() => {
+    const w = 1536, h = 768;
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const x = c.getContext('2d');
+    const img = x.createImageData(w, h);
+    const d = img.data;
+    for (let j = 0; j < h; j++) {
+      for (let i = 0; i < w; i++) {
+        const n = noiseB(i * 0.05, j * 0.05, 4) * 0.6 + noiseA(i * 0.014, j * 0.014, 2) * 0.4;
+        const g = Math.max(0, Math.min(255, 128 + (n - 0.5) * 165));
+        const k = (j * w + i) * 4;
+        d[k] = d[k + 1] = d[k + 2] = g; d[k + 3] = 255;
+      }
+    }
+    x.putImageData(img, 0, 0);
+    return c;
+  })();
 
   // Per-hex colour with individual noise variation (makes each hex visually distinct).
   function hexBaseColor(col, row, rgb) {
@@ -202,35 +230,18 @@ export async function initGlobe(container, config) {
       }
     }
 
-    // ── Per-pixel noise overlay (texture variation, avoids uniform blobs) ─
-    const imgData = ctx.getImageData(0, 0, TW, TH);
-    const px = imgData.data;
-    for (let y = 0; y < TH; y++) {
-      for (let x = 0; x < TW; x++) {
-        const i = (y * TW + x) * 4;
-        const isOcean = px[i + 2] > 110 && px[i] < 80;
-        const nx = x / TW, ny = y / TH;
-        if (isOcean) {
-          // Ocean: gentle luminance variation for depth.
-          const w = 0.9 + 0.2 * noiseA(nx * 30, ny * 15, 3);
-          px[i] = Math.min(255, px[i] * w);
-          px[i+1] = Math.min(255, px[i+1] * w);
-          px[i+2] = Math.min(255, px[i+2] * w);
-        } else {
-          // Land: painterly multi-octave variation.
-          const n = noiseB(nx * 80, ny * 80, 3) * 0.5 + noiseC(nx * 20, ny * 20, 2) * 0.5;
-          const v = 0.85 + 0.30 * n;
-          px[i] = Math.min(255, px[i] * v);
-          px[i+1] = Math.min(255, px[i+1] * v);
-          px[i+2] = Math.min(255, px[i+2] * v);
-        }
-      }
-    }
-    ctx.putImageData(imgData, 0, 0);
+    // ── Painterly noise overlay (soft-light, cheap) ─────────────────────
+    ctx.save();
+    ctx.globalCompositeOperation = 'soft-light';
+    ctx.globalAlpha = 0.8;
+    ctx.drawImage(noiseTile, 0, 0, TW, TH);
+    ctx.globalAlpha = 0.35;
+    ctx.drawImage(noiseTile, TW * 0.13, TH * 0.07, TW, TH); // second offset octave
+    ctx.restore();
 
     // ── Hex grid outlines (thin, dark – shows the hex character) ─────────
-    ctx.strokeStyle = 'rgba(0,0,0,0.28)';
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0,0,0,0.26)';
+    ctx.lineWidth = 2.5 * SCALE;
     ctx.lineJoin = 'round';
     ctx.beginPath();
     for (let row = 0; row < ROWS; row++) {
@@ -248,8 +259,8 @@ export async function initGlobe(container, config) {
     ctx.stroke();
 
     // ── Coastlines: dark stroke on land hexes bordering ocean ────────────
-    ctx.strokeStyle = 'rgba(20, 30, 40, 0.6)';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(20, 30, 40, 0.55)';
+    ctx.lineWidth = 4 * SCALE;
     ctx.beginPath();
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
@@ -269,7 +280,7 @@ export async function initGlobe(container, config) {
 
     // ── Mountain carets ───────────────────────────────────────────────────
     ctx.strokeStyle = 'rgba(50, 40, 28, 0.72)';
-    ctx.lineWidth = 2.5;
+    ctx.lineWidth = 2.5 * SCALE;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
     for (let row = 0; row < ROWS; row++) {
@@ -277,7 +288,7 @@ export async function initGlobe(container, config) {
         if (lookup.get(`${col},${row}`).terrain !== 'mountain') continue;
         const [lng, lat] = hexCenter(col, row);
         const x = lngToX(lng), y = latToY(lat);
-        const s = 18 + 10 * noiseB(col * 1.7, row * 1.7, 1);
+        const s = (18 + 10 * noiseB(col * 1.7, row * 1.7, 1)) * SCALE;
         ctx.beginPath();
         ctx.moveTo(x - s, y + s * 0.55);
         ctx.lineTo(x,     y - s * 0.75);
@@ -290,7 +301,7 @@ export async function initGlobe(container, config) {
     if (political) {
       // Softer shadow pass first.
       ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      ctx.lineWidth = 14;
+      ctx.lineWidth = 14 * SCALE;
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
       ctx.setLineDash([]);
@@ -313,8 +324,8 @@ export async function initGlobe(container, config) {
 
       // White dashed border pass.
       ctx.strokeStyle = 'rgba(245, 240, 225, 0.95)';
-      ctx.lineWidth = 8;
-      ctx.setLineDash([22, 10]);
+      ctx.lineWidth = 8 * SCALE;
+      ctx.setLineDash([22 * SCALE, 10 * SCALE]);
       ctx.lineDashOffset = 0;
       ctx.beginPath();
       for (let row = 0; row < ROWS; row++) {
@@ -335,31 +346,10 @@ export async function initGlobe(container, config) {
       ctx.setLineDash([]);
     }
 
-    // ── Polar ice caps – very large, feathered, pushing content equatorward ─
-    // North cap: solid white above ~lat 50, feathering down to ~lat 32.
-    const nY = latToY(32);
-    const gN = ctx.createLinearGradient(0, 0, 0, nY);
-    gN.addColorStop(0,    'rgba(250,253,255,1)');
-    gN.addColorStop(0.5,  'rgba(242,249,254,0.98)');
-    gN.addColorStop(0.74, 'rgba(228,242,251,0.82)');
-    gN.addColorStop(0.9,  'rgba(214,232,246,0.45)');
-    gN.addColorStop(1,    'rgba(205,224,240,0)');
-    ctx.fillStyle = gN;
-    ctx.fillRect(0, 0, TW, nY);
-
-    // South cap: solid white below ~lat -50, feathering up to ~lat -32.
-    const sY = latToY(-32);
-    const gS = ctx.createLinearGradient(0, TH, 0, sY);
-    gS.addColorStop(0,    'rgba(250,253,255,1)');
-    gS.addColorStop(0.5,  'rgba(242,249,254,0.98)');
-    gS.addColorStop(0.74, 'rgba(228,242,251,0.82)');
-    gS.addColorStop(0.9,  'rgba(214,232,246,0.45)');
-    gS.addColorStop(1,    'rgba(205,224,240,0)');
-    ctx.fillStyle = gS;
-    ctx.fillRect(0, sY, TW, TH - sY);
+    // (Ice caps are now real white hexes baked above; no gradient overlay.)
 
     const tex = new THREE.CanvasTexture(cv);
-    tex.anisotropy = 8;
+    tex.anisotropy = 16; // clamped to GPU max by the driver
     return tex;
   }
 
@@ -377,12 +367,12 @@ export async function initGlobe(container, config) {
 
   const scene  = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-  camera.position.set(0, 0, 3.0);
+  camera.position.set(0, 0, 3.7);
 
   // Use BasicMaterial so the baked texture renders exactly as painted.
   // Default to the physical/terrain map; the toggle switches to political colours.
   const material = new THREE.MeshBasicMaterial({ map: texTerrain });
-  const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
+  const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 160, 160), material);
   scene.add(sphere);
 
   // Thin atmosphere rim (additive blend so it glows).
@@ -444,8 +434,10 @@ export async function initGlobe(container, config) {
   container.appendChild(pinLayer);
 
   const TYPE_COLORS = { location: '#ffd23f', faction: '#e8a030', character: '#50c878' };
-  // Camera distance beyond which we show country labels (far) instead of city pins (near).
-  const ZOOM_FAR = 2.3;
+  // Camera distance beyond which we show country labels (far) instead of city pins
+  // (near). Set high so cities appear after only a small zoom-in, while the whole
+  // planet is still comfortably in view.
+  const ZOOM_FAR = 3.5;
   let countryHandler = null;
   let pins = [];
 
