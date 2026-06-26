@@ -181,7 +181,7 @@ html, body {
 .badge-faction { background: #3a2800; color: var(--faction); }
 .badge-character { background: #0d3020; color: var(--character); }
 
-#panel-close {
+#panel-close, #panel-home {
   background: none;
   border: none;
   color: var(--text-dim);
@@ -193,8 +193,9 @@ html, body {
   margin-top: 4px;
   transition: color 0.2s;
 }
+#panel-home { font-size: 18px; color: var(--accent); }
 
-#panel-close:hover { color: var(--text); }
+#panel-close:hover, #panel-home:hover { color: var(--text); }
 
 /* ── Wiki content ── */
 #wiki-content {

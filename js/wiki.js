@@ -131,6 +131,7 @@ export function initWiki(map, config) {
   const content = document.getElementById('wiki-content');
   const tab = document.getElementById('panel-tab');
   const closeBtn = document.getElementById('panel-close');
+  const homeBtn = document.getElementById('panel-home');
 
   const history = [];
 
@@ -224,6 +225,7 @@ export function initWiki(map, config) {
   });
 
   closeBtn.addEventListener('click', () => wiki.panelClose());
+  homeBtn?.addEventListener('click', () => { wiki.showHome(); wiki.panelOpen(); });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') wiki.panelClose();
