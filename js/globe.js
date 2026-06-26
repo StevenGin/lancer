@@ -72,40 +72,49 @@ export async function initGlobe(container, config) {
   const COLS = config.hex.columns;   // 32
   const ROWS = config.hex.rows;      // 37
   const dLng = 360 / COLS;
-  const dLat = 180 / ROWS;
+  // Content is squeezed into a mid-latitude band so the polar ice caps can be
+  // large; everything beyond ±LAT_LIMIT is ocean/ice.
+  const LAT_LIMIT = 60;
+  const rowLatStep = (2 * LAT_LIMIT) / ROWS;
 
   // ── Hex ↔ geographic mapping ──────────────────────────────────────────────
   function hexCenter(col, row) {
     const lng = -180 + (col + 0.5 * (row % 2) + 0.5) * dLng;
-    return [lng, Math.max(-89.9, Math.min(89.9, 90 - (row + 0.5) * dLat))];
+    return [lng, LAT_LIMIT - (row + 0.5) * rowLatStep];
   }
 
   // Return the 6 vertex [lng, lat] positions of a pointy-top hex.
   function hexPolygon(col, row) {
     const [clng, clat] = hexCenter(col, row);
-    const Sx = dLng / Math.sqrt(3);  // half-width in longitude degrees
-    const Sy = dLat / 1.5;           // half-height in latitude degrees
+    const Sx = dLng / Math.sqrt(3);   // half-width in longitude degrees
+    const Sy = rowLatStep / 1.5;      // half-height in latitude degrees
     const ring = [];
     for (let i = 0; i < 6; i++) {
       const a = (Math.PI / 180) * (60 * i - 30);
-      ring.push([clng + Sx * Math.cos(a),
-                 Math.max(-90, Math.min(90, clat + Sy * Math.sin(a)))]);
+      ring.push([clng + Sx * Math.cos(a), clat + Sy * Math.sin(a)]);
     }
     return ring;
   }
 
-  // ── Territory lookup ────────────────────────────────────────────────────────
-  const lookup = new Map();
-  for (let row = 0; row < ROWS; row++) {
-    for (let col = 0; col < COLS; col++) {
-      let entry = { terrain: 'ocean', faction: null };
-      for (const z of zones) {
-        if (row >= z.rMin && row <= z.rMax && col >= z.cMin && col <= z.cMax)
-          entry = { terrain: z.terrain, faction: z.faction || null };
-      }
-      lookup.set(`${col},${row}`, entry);
+  // ── Territory lookup (warped for organic, non-rigid shapes) ──────────────────
+  const warpA = makeNoise(211), warpB = makeNoise(307);
+  function sampleZone(col, row) {
+    // Warp the sampling position with low-frequency noise so faction/terrain
+    // boundaries undulate instead of following rigid rectangles.
+    const wx = (warpA(col * 0.16, row * 0.16, 2) - 0.5) * 6.5;
+    const wy = (warpB(col * 0.16, row * 0.16, 2) - 0.5) * 5.0;
+    const sc = col + wx, sr = row + wy;
+    let entry = { terrain: 'ocean', faction: null };
+    for (const z of zones) {
+      if (sr >= z.rMin && sr <= z.rMax && sc >= z.cMin && sc <= z.cMax)
+        entry = { terrain: z.terrain, faction: z.faction || null };
     }
+    return entry;
   }
+  const lookup = new Map();
+  for (let row = 0; row < ROWS; row++)
+    for (let col = 0; col < COLS; col++)
+      lookup.set(`${col},${row}`, sampleZone(col, row));
 
   // ── Faction centroids (for labels) ────────────────────────────────────────
   const factionCentroids = new Map();
@@ -151,33 +160,23 @@ export async function initGlobe(container, config) {
     ctx.fill();
   }
 
-  // Correct neighbour → shared-edge mapping for odd-r pointy-top grid.
-  // Vertex winding order (from hexPolygon, 60*i-30, clockwise in screen space):
-  //   0=upper-right, 1=lower-right, 2=bottom, 3=lower-left, 4=upper-left, 5=top
-  // Shared edges:
-  //   right   → edge [0, 1]
-  //   lower-r → edge [1, 2]
-  //   lower-l → edge [2, 3]
-  function forwardNeighbours(col, row) {
+  // Neighbour → shared-edge mapping for an odd-r pointy-top grid.
+  // Vertices from hexPolygon (angle 60*i-30), in screen space (y points down):
+  //   v0 right-lower, v1 right-upper, v2 top, v3 left-upper, v4 left-lower, v5 bottom
+  // Edges: E=[0,1] NE=[1,2] NW=[2,3] W=[3,4] SW=[4,5] SE=[5,0]
+  function allNeighbours(col, row) {
     const odd = row % 2 === 1;
     return [
-      { nc: col + 1, nr: row,     ea: 0, eb: 1 },          // E
-      { nc: col + (odd ? 1 : 0), nr: row + 1, ea: 1, eb: 2 }, // SE
-      { nc: col + (odd ? 0 : -1), nr: row + 1, ea: 2, eb: 3 }, // SW
+      { nc: col + 1,                nr: row,     ea: 0, eb: 1 }, // E
+      { nc: col + (odd ? 1 : 0),    nr: row + 1, ea: 5, eb: 0 }, // SE
+      { nc: col + (odd ? 0 : -1),   nr: row + 1, ea: 4, eb: 5 }, // SW
+      { nc: col - 1,                nr: row,     ea: 3, eb: 4 }, // W
+      { nc: col + (odd ? 0 : -1),   nr: row - 1, ea: 2, eb: 3 }, // NW
+      { nc: col + (odd ? 1 : 0),    nr: row - 1, ea: 1, eb: 2 }, // NE
     ];
   }
-
-  // Rivers defined as [lng, lat] waypoints, flowing from highlands toward ocean.
-  const RIVERS = [
-    // Stoneview mountains → Eastern Sea
-    [[112.5, 4.9], [118.1, 0], [135, -4.9], [140.6, -9.7], [152, -14]],
-    // Northreach highlands → Cerulean Sea
-    [[-78.75, 53.5], [-73.1, 48.6], [-56.25, 43.8], [-50.6, 38.9], [-33.75, 34.1]],
-    // Greenvale heartland → Silvermere Bay
-    [[-22.5, 14.6], [-33.75, 4.9], [-33.75, -4.9], [-39.4, -19.5], [-39.4, -29.2]],
-    // Duneward desert → western ocean
-    [[-106.9, 19.5], [-112.5, 4.9], [-118.1, 0], [-118.1, -14.6]],
-  ];
+  // Forward set (E, SE, SW) — each shared edge visited exactly once.
+  const forwardNeighbours = (col, row) => allNeighbours(col, row).slice(0, 3);
 
   function buildTexture(political) {
     const cv = document.createElement('canvas');
@@ -257,46 +256,16 @@ export async function initGlobe(container, config) {
         const me = lookup.get(`${col},${row}`);
         if (me.terrain === 'ocean') continue;
         const ring = hexPolygon(col, row);
-        for (const { nc, nr, ea, eb } of forwardNeighbours(col, row)) {
+        for (const { nc, nr, ea, eb } of allNeighbours(col, row)) {
           const nd = lookup.get(`${nc},${nr}`);
           if (!nd || nd.terrain === 'ocean') {
             ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
             ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
           }
         }
-        // Also check backward edges for coastlines at boundary hexes
-        const odd = row % 2 === 1;
-        const backward = [
-          { nc: col - 1, nr: row },
-          { nc: col + (odd ? 0 : -1), nr: row - 1 },
-          { nc: col + (odd ? 1 : 0), nr: row - 1 },
-        ];
-        const backEdges = [[3, 4], [4, 5], [5, 0]];
-        backward.forEach(({ nc, nr }, idx) => {
-          const nd = lookup.get(`${nc},${nr}`);
-          if (!nd || nd.terrain === 'ocean') {
-            const [ea, eb] = backEdges[idx];
-            ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
-            ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
-          }
-        });
       }
     }
     ctx.stroke();
-
-    // ── Rivers ────────────────────────────────────────────────────────────
-    ctx.strokeStyle = 'rgba(60, 130, 195, 0.82)';
-    ctx.lineWidth = 6;
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    for (const r of RIVERS) {
-      ctx.beginPath();
-      r.forEach(([lng, lat], i) => {
-        const x = lngToX(lng), y = latToY(lat);
-        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
-      });
-      ctx.stroke();
-    }
 
     // ── Mountain carets ───────────────────────────────────────────────────
     ctx.strokeStyle = 'rgba(50, 40, 28, 0.72)';
@@ -366,27 +335,28 @@ export async function initGlobe(container, config) {
       ctx.setLineDash([]);
     }
 
-    // ── Polar ice caps – large, soft, radial gradient ────────────────────
-    // North cap: centered at top edge of texture.
-    const capNPx = TH * 0.22; // extends ~22% of image height from top
-    const gnCap = ctx.createRadialGradient(TW / 2, 0, 0, TW / 2, 0, capNPx);
-    gnCap.addColorStop(0,    'rgba(248,252,255,1)');
-    gnCap.addColorStop(0.45, 'rgba(235,245,252,0.92)');
-    gnCap.addColorStop(0.72, 'rgba(215,232,244,0.72)');
-    gnCap.addColorStop(0.88, 'rgba(200,220,236,0.40)');
-    gnCap.addColorStop(1,    'rgba(190,210,228,0)');
-    ctx.fillStyle = gnCap;
-    ctx.fillRect(0, 0, TW, capNPx * 1.1);
+    // ── Polar ice caps – very large, feathered, pushing content equatorward ─
+    // North cap: solid white above ~lat 50, feathering down to ~lat 32.
+    const nY = latToY(32);
+    const gN = ctx.createLinearGradient(0, 0, 0, nY);
+    gN.addColorStop(0,    'rgba(250,253,255,1)');
+    gN.addColorStop(0.5,  'rgba(242,249,254,0.98)');
+    gN.addColorStop(0.74, 'rgba(228,242,251,0.82)');
+    gN.addColorStop(0.9,  'rgba(214,232,246,0.45)');
+    gN.addColorStop(1,    'rgba(205,224,240,0)');
+    ctx.fillStyle = gN;
+    ctx.fillRect(0, 0, TW, nY);
 
-    // South cap: centered at bottom edge.
-    const capSPx = TH * 0.14;
-    const gsCap = ctx.createRadialGradient(TW / 2, TH, 0, TW / 2, TH, capSPx);
-    gsCap.addColorStop(0,    'rgba(248,252,255,1)');
-    gsCap.addColorStop(0.5,  'rgba(235,245,252,0.85)');
-    gsCap.addColorStop(0.8,  'rgba(215,232,244,0.50)');
-    gsCap.addColorStop(1,    'rgba(200,220,236,0)');
-    ctx.fillStyle = gsCap;
-    ctx.fillRect(0, TH - capSPx * 1.1, TW, capSPx * 1.1);
+    // South cap: solid white below ~lat -50, feathering up to ~lat -32.
+    const sY = latToY(-32);
+    const gS = ctx.createLinearGradient(0, TH, 0, sY);
+    gS.addColorStop(0,    'rgba(250,253,255,1)');
+    gS.addColorStop(0.5,  'rgba(242,249,254,0.98)');
+    gS.addColorStop(0.74, 'rgba(228,242,251,0.82)');
+    gS.addColorStop(0.9,  'rgba(214,232,246,0.45)');
+    gS.addColorStop(1,    'rgba(205,224,240,0)');
+    ctx.fillStyle = gS;
+    ctx.fillRect(0, sY, TW, TH - sY);
 
     const tex = new THREE.CanvasTexture(cv);
     tex.anisotropy = 8;
@@ -410,7 +380,8 @@ export async function initGlobe(container, config) {
   camera.position.set(0, 0, 3.0);
 
   // Use BasicMaterial so the baked texture renders exactly as painted.
-  const material = new THREE.MeshBasicMaterial({ map: texPolitical });
+  // Default to the physical/terrain map; the toggle switches to political colours.
+  const material = new THREE.MeshBasicMaterial({ map: texTerrain });
   const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
   scene.add(sphere);
 
@@ -472,7 +443,10 @@ export async function initGlobe(container, config) {
   pinLayer.id = 'pin-layer';
   container.appendChild(pinLayer);
 
-  const TYPE_COLORS = { location: '#4a9eff', faction: '#e8a030', character: '#50c878' };
+  const TYPE_COLORS = { location: '#ffd23f', faction: '#e8a030', character: '#50c878' };
+  // Camera distance beyond which we show country labels (far) instead of city pins (near).
+  const ZOOM_FAR = 2.3;
+  let countryHandler = null;
   let pins = [];
 
   function setPins(pinData, onClick) {
@@ -503,6 +477,10 @@ export async function initGlobe(container, config) {
     const el = document.createElement('div');
     el.className = 'faction-label';
     el.textContent = name; // newlines via CSS white-space
+    el.addEventListener('click', e => {
+      e.stopPropagation();
+      if (countryHandler) countryHandler(fk, name.replace(/\n/g, ' '));
+    });
     labelLayer.appendChild(el);
     factionLabels.push({ el, local: lnglatToVec3(lng, lat, 1) });
   }
@@ -519,15 +497,17 @@ export async function initGlobe(container, config) {
 
   function updatePinPositions() {
     sphere.updateMatrixWorld();
+    const far = camera.position.z >= ZOOM_FAR;
+    // Far zoom → country labels; near zoom → city pins. They swap.
     for (const { el, local } of pins) {
-      const p = projectLocal(local);
+      const p = far ? null : projectLocal(local);
       if (!p) { el.style.display = 'none'; continue; }
       el.style.display = '';
       el.style.left = p.x + 'px';
       el.style.top  = p.y + 'px';
     }
     for (const { el, local } of factionLabels) {
-      const p = projectLocal(local);
+      const p = far ? projectLocal(local) : null;
       if (!p) { el.style.display = 'none'; continue; }
       el.style.display = '';
       el.style.left = p.x + 'px';
@@ -583,7 +563,7 @@ export async function initGlobe(container, config) {
   window.addEventListener('resize', resize);
   resize();
 
-  let political = true;
+  let political = false; // default: physical/terrain map
   return {
     toggleTint() {
       political = !political;
@@ -592,6 +572,7 @@ export async function initGlobe(container, config) {
       renderScene();
       return political;
     },
+    onCountry(cb) { countryHandler = cb; },
     setPins,
     panTo,
     panToHex(address) {
