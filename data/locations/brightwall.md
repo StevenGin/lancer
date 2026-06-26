@@ -11,7 +11,7 @@ notableFeatures: [The Brightwall, Union Council Chamber, Irongate Market Distric
 
 ## Overview
 
-Capital of the Brightmarch Union and home of the famous defensive wall that gave the city its name. Brightwall sits at a strategic chokepoint between the Duneward plains and the Greenvale agricultural heartland, and has changed hands multiple times throughout Vanities' history. The current Union government has held it for three generations.
+Capital of the Brightmarch Union and home of the famous defensive wall that gave the city its name. Brightwall sits at a strategic chokepoint between the Duneward plains and the Greenvale agricultural heartland, and has changed hands multiple times throughout Vandyse' history. The current Union government has held it for three generations.
 
 ## Notes
 

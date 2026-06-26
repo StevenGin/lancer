@@ -11,7 +11,7 @@ notableFeatures: [Hearthfield Seed Vaults, Agricultural Research Institute, Cent
 
 ## Overview
 
-One of the Greenvale Republic's primary agricultural research cities. Hearthfield houses the continent's largest seed vault and the Agricultural Research Institute, which develops crop strains resilient to Vanities' varying pollution levels. The city's fields stretch to the horizon in every direction.
+One of the Greenvale Republic's primary agricultural research cities. Hearthfield houses the continent's largest seed vault and the Agricultural Research Institute, which develops crop strains resilient to Vandyse' varying pollution levels. The city's fields stretch to the horizon in every direction.
 
 ## Notes
 

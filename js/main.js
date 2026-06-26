@@ -14,9 +14,15 @@ async function main() {
   await initPins(globe, config, wiki);
   await initSearch(wiki);
 
-  // Clicking a country label (far zoom) opens its faction/nation wiki entry.
+  // Clicking a country label (far zoom) opens its country wiki entry.
   globe.onCountry((slug, name) => {
-    wiki.open('faction', slug, name);
+    wiki.open('country', slug, name);
+    wiki.panelOpen();
+  });
+
+  // Clicking the orbiting starship opens the Caladrius faction page.
+  globe.onShip(() => {
+    wiki.open('faction', 'caladrius', 'Caladrius');
     wiki.panelOpen();
   });
 

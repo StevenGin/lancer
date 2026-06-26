@@ -1,6 +1,7 @@
 ---
-type: faction
+type: country
 title: Stoneview Commonwealth
+controllingFaction: highland-league
 shortName: SVC
 allegiance: Union-aligned
 territory: ["2519", "2419", "2520", "2419"]

@@ -1,0 +1,68 @@
+[
+  {
+    "id": "brightmarch-union",
+    "title": "Brightmarch Union",
+    "tags": [],
+    "controllingFaction": "iron-accord"
+  },
+  {
+    "id": "duneward-coalition",
+    "title": "The Duneward Coalition",
+    "tags": [],
+    "controllingFaction": "iron-accord"
+  },
+  {
+    "id": "farreach-league",
+    "title": "Farreach League",
+    "tags": [],
+    "controllingFaction": "highland-league"
+  },
+  {
+    "id": "greenvale-republic",
+    "title": "Greenvale Republic",
+    "tags": [],
+    "controllingFaction": "concord"
+  },
+  {
+    "id": "lakeside-union",
+    "title": "Lakeside Union",
+    "tags": [],
+    "controllingFaction": "highland-league"
+  },
+  {
+    "id": "northreach-confederacy",
+    "title": "Northreach Confederacy",
+    "tags": [],
+    "controllingFaction": "concord"
+  },
+  {
+    "id": "rustcoast-confederacy",
+    "title": "Rustcoast Confederacy",
+    "tags": [],
+    "controllingFaction": "iron-accord"
+  },
+  {
+    "id": "smogspire-union",
+    "title": "Smogspire Union",
+    "tags": [],
+    "controllingFaction": "caladrius"
+  },
+  {
+    "id": "southpoint-league",
+    "title": "Southpoint League",
+    "tags": [],
+    "controllingFaction": "concord"
+  },
+  {
+    "id": "stoneview-commonwealth",
+    "title": "Stoneview Commonwealth",
+    "tags": [],
+    "controllingFaction": "highland-league"
+  },
+  {
+    "id": "veltora-federation",
+    "title": "Veltora Federation",
+    "tags": [],
+    "controllingFaction": "caladrius"
+  }
+]

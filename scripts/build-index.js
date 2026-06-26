@@ -23,14 +23,15 @@ function parseFrontmatter(text) {
   return { meta, body: match[2] };
 }
 
-const TYPES = ['locations', 'factions', 'characters'];
+const TYPES = ['locations', 'countries', 'factions', 'characters'];
+const SINGULAR = { locations: 'location', countries: 'country', factions: 'faction', characters: 'character' };
 const dataDir = path.join(__dirname, '..', 'data');
 const index = [];
 
 for (const category of TYPES) {
   const dir = path.join(dataDir, category);
   if (!fs.existsSync(dir)) continue;
-  const type = category.slice(0, -1); // remove 's'
+  const type = SINGULAR[category];
 
   const files = fs.readdirSync(dir).filter(f => f.endsWith('.md'));
   for (const file of files) {
@@ -64,7 +65,7 @@ for (const category of TYPES) {
 for (const category of TYPES) {
   const indexFile = path.join(dataDir, category, 'index.json');
   if (!fs.existsSync(indexFile)) continue;
-  const type = category.slice(0, -1);
+  const type = SINGULAR[category];
   const entries = JSON.parse(fs.readFileSync(indexFile, 'utf8'));
   for (const entry of entries) {
     if (!index.find(i => i.id === entry.id && i.type === type)) {

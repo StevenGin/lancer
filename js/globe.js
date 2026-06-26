@@ -1,4 +1,4 @@
-// ── Vanities globe: Three.js GPU sphere with baked equirectangular texture ───
+// ── Vandyse globe: Three.js GPU sphere with baked equirectangular texture ───
 // The texture is generated once at startup; all rendering after that is GPU-driven.
 
 // Per-faction political colours.
@@ -112,13 +112,16 @@ export async function initGlobe(container, config) {
     }
     return entry;
   }
-  // Above this latitude the surface is polar ice — actual white hexes, no content.
-  const ICE_LAT = 44;
+  // Latitude bands: ice hexes near the poles, then a ring of open water that
+  // separates the ice from the continents, then the content zone.
+  const ICE_LAT = 44;    // |lat| >= 44  → white ice hexes
+  const MOAT_LAT = 37;   // 37..44       → forced ocean (separates ice from land)
   const lookup = new Map();
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
-      const lat = hexCenter(col, row)[1];
-      if (Math.abs(lat) >= ICE_LAT) lookup.set(`${col},${row}`, { terrain: 'ice', faction: null });
+      const lat = Math.abs(hexCenter(col, row)[1]);
+      if (lat >= ICE_LAT) lookup.set(`${col},${row}`, { terrain: 'ice', faction: null });
+      else if (lat >= MOAT_LAT) lookup.set(`${col},${row}`, { terrain: 'ocean', faction: null });
       else lookup.set(`${col},${row}`, sampleZone(col, row));
     }
   }
@@ -297,58 +300,71 @@ export async function initGlobe(container, config) {
       }
     }
 
-    // ── Faction borders (thick white dashed, all in one stroke call) ──────
+    // ── Country borders ───────────────────────────────────────────────────
+    // Walk every hex and every one of its six neighbours; draw the shared edge
+    // whenever the two belong to different countries. Dedupe each edge so it is
+    // stroked exactly once (this is what makes west/east borders consistent).
     if (political) {
-      // Softer shadow pass first.
-      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-      ctx.lineWidth = 14 * SCALE;
+      const seen = new Set();
+      const path2 = new Path2D();
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const me = lookup.get(`${col},${row}`).faction;
+          if (!me) continue;
+          const ring = hexPolygon(col, row);
+          for (const { nc, nr, ea, eb } of allNeighbours(col, row)) {
+            const nf = lookup.get(`${nc},${nr}`)?.faction ?? null;
+            if (me === nf) continue;
+            // Edge key independent of which hex visits it.
+            const ax = ring[ea][0].toFixed(3), ay = ring[ea][1].toFixed(3);
+            const bx = ring[eb][0].toFixed(3), by = ring[eb][1].toFixed(3);
+            const key = ax < bx || (ax === bx && ay < by)
+              ? `${ax},${ay}|${bx},${by}` : `${bx},${by}|${ax},${ay}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            path2.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
+            path2.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
+          }
+        }
+      }
       ctx.lineJoin = 'round';
       ctx.lineCap = 'round';
+      // Dark casing.
       ctx.setLineDash([]);
-      ctx.beginPath();
-      for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-          const me = lookup.get(`${col},${row}`).faction;
-          if (!me) continue;
-          const ring = hexPolygon(col, row);
-          for (const { nc, nr, ea, eb } of forwardNeighbours(col, row)) {
-            const nf = lookup.get(`${nc},${nr}`)?.faction ?? null;
-            if (me !== nf) {
-              ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
-              ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
-            }
-          }
-        }
-      }
-      ctx.stroke();
-
-      // White dashed border pass.
-      ctx.strokeStyle = 'rgba(245, 240, 225, 0.95)';
-      ctx.lineWidth = 8 * SCALE;
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+      ctx.lineWidth = 13 * SCALE;
+      ctx.stroke(path2);
+      // White dashed line on top.
+      ctx.strokeStyle = 'rgba(245, 240, 225, 0.96)';
+      ctx.lineWidth = 7 * SCALE;
       ctx.setLineDash([22 * SCALE, 10 * SCALE]);
-      ctx.lineDashOffset = 0;
-      ctx.beginPath();
-      for (let row = 0; row < ROWS; row++) {
-        for (let col = 0; col < COLS; col++) {
-          const me = lookup.get(`${col},${row}`).faction;
-          if (!me) continue;
-          const ring = hexPolygon(col, row);
-          for (const { nc, nr, ea, eb } of forwardNeighbours(col, row)) {
-            const nf = lookup.get(`${nc},${nr}`)?.faction ?? null;
-            if (me !== nf) {
-              ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
-              ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
-            }
-          }
-        }
-      }
-      ctx.stroke();
+      ctx.stroke(path2);
       ctx.setLineDash([]);
     }
 
-    // (Ice caps are now real white hexes baked above; no gradient overlay.)
+    // ── Solid white poles ON TOP of the ice hexes ───────────────────────────
+    // The hex grid only reaches ±60°; fill the remaining polar caps to the pole
+    // with solid white so the ice runs all the way up, blending into the hexes.
+    const capWhite = '#f4f9ff';
+    // North: from pole (y=0) down past the top of the ice hexes (~lat 58).
+    const nY = latToY(57);
+    const gN = ctx.createLinearGradient(0, 0, 0, nY);
+    gN.addColorStop(0, capWhite);
+    gN.addColorStop(0.78, capWhite);
+    gN.addColorStop(1, 'rgba(244,249,255,0)');
+    ctx.fillStyle = gN;
+    ctx.fillRect(0, 0, TW, nY);
+    // South: symmetric.
+    const sY = latToY(-57);
+    const gS = ctx.createLinearGradient(0, TH, 0, sY);
+    gS.addColorStop(0, capWhite);
+    gS.addColorStop(0.78, capWhite);
+    gS.addColorStop(1, 'rgba(244,249,255,0)');
+    ctx.fillStyle = gS;
+    ctx.fillRect(0, sY, TW, TH - sY);
 
     const tex = new THREE.CanvasTexture(cv);
+    tex.wrapS = THREE.RepeatWrapping; // seamless east-west wrap (fixes seam clip)
     tex.anisotropy = 16; // clamped to GPU max by the driver
     return tex;
   }
@@ -367,7 +383,17 @@ export async function initGlobe(container, config) {
 
   const scene  = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-  camera.position.set(0, 0, 3.7);
+  // Camera state: lateral pan (panX/panY) lets the planet sit off-centre so you
+  // can zoom into a region near the edge of the screen. camZ is the dolly.
+  const MAX_Z = 3.7;          // furthest zoom-out (nation-label level)
+  let panX = 0, panY = 0, camZ = MAX_Z;
+  function applyCamera() {
+    camera.position.set(panX, panY, camZ);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(panX, panY, 0);
+    camera.updateProjectionMatrix();
+  }
+  applyCamera();
 
   // Use BasicMaterial so the baked texture renders exactly as painted.
   // Default to the physical/terrain map; the toggle switches to political colours.
@@ -424,7 +450,7 @@ export async function initGlobe(container, config) {
     width = r.width; height = r.height;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
-    camera.updateProjectionMatrix();
+    applyCamera();
     renderScene();
   }
 
@@ -434,11 +460,12 @@ export async function initGlobe(container, config) {
   container.appendChild(pinLayer);
 
   const TYPE_COLORS = { location: '#ffd23f', faction: '#e8a030', character: '#50c878' };
-  // Camera distance beyond which we show country labels (far) instead of city pins
-  // (near). Set high so cities appear after only a small zoom-in, while the whole
-  // planet is still comfortably in view.
-  const ZOOM_FAR = 3.5;
-  let countryHandler = null;
+  // Nation labels show ONLY at the furthest zoom-out; any zoom-in immediately
+  // switches to city pins.
+  const ZOOM_FAR = MAX_Z - 0.05;
+  let countryHandler = null, shipHandler = null;
+  let lastActivity = performance.now();
+  const markActivity = () => { lastActivity = performance.now(); };
   let pins = [];
 
   function setPins(pinData, onClick) {
@@ -477,6 +504,40 @@ export async function initGlobe(container, config) {
     factionLabels.push({ el, local: lnglatToVec3(lng, lat, 1) });
   }
 
+  // ── Orbiting starship (fixed in space; opens the Caladrius faction page) ────
+  const orbitLayer = document.createElement('div');
+  orbitLayer.id = 'orbit-layer';
+  container.appendChild(orbitLayer);
+  const ship = document.createElement('div');
+  ship.id = 'starship';
+  ship.title = 'Caladrius — orbital carrier';
+  ship.innerHTML = `
+    <svg viewBox="0 0 120 60" width="72" height="36" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#cfd6e2"/><stop offset="1" stop-color="#6b7384"/>
+      </linearGradient></defs>
+      <g stroke="#2b3240" stroke-width="1.5" stroke-linejoin="round">
+        <path d="M8 30 L78 22 L112 30 L78 38 Z" fill="url(#hull)"/>
+        <rect x="30" y="17" width="34" height="6" rx="2" fill="#8a93a6"/>
+        <rect x="30" y="37" width="34" height="6" rx="2" fill="#8a93a6"/>
+        <path d="M78 22 L88 9 M78 38 L88 51" stroke="#3a4252" stroke-width="2"/>
+        <circle cx="96" cy="30" r="6" fill="#9fd0ff"/>
+      </g>
+    </svg>
+    <div class="ship-label">CALADRIUS</div>`;
+  ship.addEventListener('click', e => {
+    e.stopPropagation(); markActivity();
+    if (shipHandler) shipHandler();
+  });
+  orbitLayer.appendChild(ship);
+  const shipWorld = new THREE.Vector3(1.02, 0.6, 0.15); // fixed orbital point just off the limb
+
+  function updateShip() {
+    const p = shipWorld.clone().project(camera);
+    ship.style.left = ((p.x * 0.5 + 0.5) * width) + 'px';
+    ship.style.top  = ((-p.y * 0.5 + 0.5) * height) + 'px';
+  }
+
   // ── Project a local sphere-surface point to screen ─────────────────────────
   const _v = new THREE.Vector3();
   function projectLocal(local) {
@@ -489,7 +550,8 @@ export async function initGlobe(container, config) {
 
   function updatePinPositions() {
     sphere.updateMatrixWorld();
-    const far = camera.position.z >= ZOOM_FAR;
+    updateShip();
+    const far = camZ >= ZOOM_FAR;
     // Far zoom → country labels; near zoom → city pins. They swap.
     for (const { el, local } of pins) {
       const p = far ? null : projectLocal(local);
@@ -512,18 +574,20 @@ export async function initGlobe(container, config) {
     updatePinPositions();
   }
 
-  // ── Interaction: east-west drag only, mouse wheel zoom ───────────────────
+  // ── Interaction: east-west drag, wheel zoom-to-cursor ────────────────────
   let dragging = false, lastX = 0;
 
   canvas.addEventListener('pointerdown', e => {
     dragging = true;
     lastX = e.clientX;
+    markActivity();
     canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener('pointermove', e => {
     if (!dragging) return;
     sphere.rotation.y += (e.clientX - lastX) * 0.005;
     lastX = e.clientX;
+    markActivity();
     renderScene();
   });
   canvas.addEventListener('pointerup', e => {
@@ -531,12 +595,39 @@ export async function initGlobe(container, config) {
     try { canvas.releasePointerCapture(e.pointerId); } catch {}
   });
 
+  // Zoom toward the cursor so the planet can sit off-centre.
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
-    camera.position.z *= e.deltaY < 0 ? 0.92 : 1.09;
-    camera.position.z = Math.max(1.4, Math.min(5.5, camera.position.z));
+    markActivity();
+    const rect = canvas.getBoundingClientRect();
+    const ndcX = ((e.clientX - rect.left) / width) * 2 - 1;
+    const ndcY = -(((e.clientY - rect.top) / height) * 2 - 1);
+    const tan = Math.tan((camera.fov * Math.PI / 180) / 2);
+    const wx = panX + ndcX * tan * camZ * camera.aspect;
+    const wy = panY + ndcY * tan * camZ;
+    camZ *= e.deltaY < 0 ? 0.9 : 1.111;
+    camZ = Math.max(1.3, Math.min(MAX_Z, camZ));
+    // Keep the point under the cursor fixed (no pan when fully zoomed out).
+    if (camZ >= MAX_Z) { panX = 0; panY = 0; }
+    else {
+      panX = wx - ndcX * tan * camZ * camera.aspect;
+      panY = wy - ndcY * tan * camZ;
+      const lim = 1.3;
+      panX = Math.max(-lim, Math.min(lim, panX));
+      panY = Math.max(-lim, Math.min(lim, panY));
+    }
+    applyCamera();
     renderScene();
   }, { passive: false });
+
+  // Idle auto-rotation: after 10s of no interaction, slowly spin east-west.
+  (function idleTick() {
+    requestAnimationFrame(idleTick);
+    if (!dragging && performance.now() - lastActivity > 10000) {
+      sphere.rotation.y += 0.0008;
+      renderScene();
+    }
+  })();
 
   function panTo(lng) {
     let target = yRotFor(lng);
@@ -565,6 +656,7 @@ export async function initGlobe(container, config) {
       return political;
     },
     onCountry(cb) { countryHandler = cb; },
+    onShip(cb) { shipHandler = cb; },
     setPins,
     panTo,
     panToHex(address) {

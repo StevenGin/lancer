@@ -11,7 +11,7 @@ notableFeatures: [Veltora Industrial Core, Federation Parliament, Haze Processin
 
 ## Overview
 
-The largest city on Vanities and capital of the Veltora Federation. Veltora City is the industrial heart of the planet — a vast sprawl of fabrication plants, mech foundries, and corporate arcologies. The sky is perpetually overcast with the haze layer that blankets the northern industrial zones.
+The largest city on Vandyse and capital of the Veltora Federation. Veltora City is the industrial heart of the planet — a vast sprawl of fabrication plants, mech foundries, and corporate arcologies. The sky is perpetually overcast with the haze layer that blankets the northern industrial zones.
 
 ## Notes
 
