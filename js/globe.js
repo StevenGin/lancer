@@ -150,63 +150,6 @@ export async function initGlobe(container, config) {
   }
   for (const k of toErode) lookup.set(k, { terrain: 'ocean', faction: null });
 
-  // ── Remove faction enclaves ─────────────────────────────────────────────────
-  // The heavy warp can spit out detached blobs of one nation sitting inside
-  // another (or stranded in the sea). Find each faction's connected components;
-  // keep only its largest, and absorb every smaller blob into whatever dominates
-  // its surroundings (a neighbouring nation, or open ocean).
-  {
-    const wrap0 = c => ((c % COLS) + COLS) % COLS;
-    const keyOf = (c, r) => `${wrap0(c)},${r}`;
-    const visited = new Set();
-    const comps = [];
-    for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const k = `${col},${row}`;
-        const d = lookup.get(k);
-        if (!d.faction || visited.has(k)) continue;
-        const fac = d.faction, hexes = [], stack = [[col, row]];
-        visited.add(k);
-        while (stack.length) {
-          const [c, r] = stack.pop();
-          hexes.push([c, r]);
-          for (const [nc, nr] of rawNeighbours(c, r)) {
-            if (nr < 0 || nr >= ROWS) continue;
-            const wk = keyOf(nc, nr);
-            if (!visited.has(wk) && lookup.get(wk)?.faction === fac) {
-              visited.add(wk);
-              stack.push([wrap0(nc), nr]);
-            }
-          }
-        }
-        comps.push({ fac, hexes });
-      }
-    }
-    const maxSize = {};
-    for (const cmp of comps) maxSize[cmp.fac] = Math.max(maxSize[cmp.fac] || 0, cmp.hexes.length);
-    for (const cmp of comps) {
-      if (cmp.hexes.length >= maxSize[cmp.fac]) continue; // keep each faction's largest blob
-      const inComp = new Set(cmp.hexes.map(([c, r]) => keyOf(c, r)));
-      const counts = new Map(), sample = new Map();
-      for (const [c, r] of cmp.hexes) {
-        for (const [nc, nr] of rawNeighbours(c, r)) {
-          if (nr < 0 || nr >= ROWS) continue;
-          const wk = keyOf(nc, nr);
-          if (inComp.has(wk)) continue;
-          const nd = lookup.get(wk);
-          const key = nd ? (nd.faction || `_${nd.terrain}`) : '_ocean';
-          counts.set(key, (counts.get(key) || 0) + 1);
-          if (!sample.has(key)) sample.set(key, nd || { terrain: 'ocean', faction: null });
-        }
-      }
-      let best = null, bestN = -1;
-      for (const [k, n] of counts) if (n > bestN) { bestN = n; best = k; }
-      const rep = best ? sample.get(best) : { terrain: 'ocean', faction: null };
-      const entry = rep.faction ? { terrain: rep.terrain, faction: rep.faction } : { terrain: 'ocean', faction: null };
-      for (const [c, r] of cmp.hexes) lookup.set(keyOf(c, r), entry);
-    }
-  }
-
   // ── Faction centroids (for labels) ────────────────────────────────────────
   const factionCentroids = new Map();
   for (const fk of Object.keys(FACTION_COLOR)) {
