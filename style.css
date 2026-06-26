@@ -384,8 +384,13 @@ html, body {
 .wiki-body strong { color: var(--accent); }
 .wiki-body em { color: var(--text-dim); }
 
-.wiki-body a { color: var(--accent); text-decoration: none; }
+.wiki-body a { color: var(--accent); text-decoration: none; cursor: pointer; }
 .wiki-body a:hover { text-decoration: underline; }
+
+/* auto cross-reference links inside body text */
+.wiki-xref { border-bottom: 1px dotted var(--accent-dim); }
+.wiki-xref:hover { border-bottom-color: var(--accent); }
+.wiki-body strong .wiki-xref, .wiki-xref { color: var(--accent); }
 
 .wiki-body hr {
   border: none;
