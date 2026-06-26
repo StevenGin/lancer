@@ -1,126 +1,145 @@
-// ── Vanities globe: GPU-textured sphere (Three.js) ───────────────────────────
-// Territory data (col,row hexes) is baked once into an equirectangular raster
-// texture — painterly terrain + country colours + white borders — then mapped
-// onto a sphere. The GPU handles rotation, so dragging is smooth. The sphere
-// only spins east-west (about its polar axis).
+// ── Vanities globe: Three.js GPU sphere with baked equirectangular texture ───
+// The texture is generated once at startup; all rendering after that is GPU-driven.
 
-// Political (per-country) colours, tuned to the reference map.
+// Per-faction political colours.
 const FACTION_COLOR = {
-  'northreach-confederacy': [150, 158, 96],
-  'veltora-federation':     [78, 70, 80],
-  'smogspire-union':        [120, 108, 132],
-  'duneward-coalition':     [202, 172, 112],
-  'greenvale-republic':     [112, 150, 80],
-  'farreach-league':        [118, 138, 112],
-  'stoneview-commonwealth': [142, 122, 96],
-  'brightmarch-union':      [172, 110, 90],
-  'rustcoast-confederacy':  [184, 122, 70],
-  'lakeside-union':         [86, 150, 162],
-  'southpoint-league':      [122, 162, 122],
+  'northreach-confederacy': [140, 155, 90],
+  'veltora-federation':     [90, 78, 100],
+  'smogspire-union':        [130, 115, 145],
+  'duneward-coalition':     [198, 165, 100],
+  'greenvale-republic':     [100, 148, 75],
+  'farreach-league':        [108, 132, 100],
+  'stoneview-commonwealth': [145, 125, 95],
+  'brightmarch-union':      [175, 105, 88],
+  'rustcoast-confederacy':  [185, 120, 65],
+  'lakeside-union':         [80, 148, 165],
+  'southpoint-league':      [115, 158, 112],
 };
 
-// Physical terrain colours (shown when political tint is toggled off).
+const FACTION_LABEL = {
+  'northreach-confederacy': 'Northreach\nConfederacy',
+  'veltora-federation':     'Veltora\nFederation',
+  'smogspire-union':        'Smogspire\nUnion',
+  'duneward-coalition':     'The Duneward\nCoalition',
+  'greenvale-republic':     'Greenvale\nRepublic',
+  'farreach-league':        'Farreach\nLeague',
+  'stoneview-commonwealth': 'Stoneview\nCommonwealth',
+  'brightmarch-union':      'Brightmarch\nUnion',
+  'rustcoast-confederacy':  'Rustcoast\nConfederacy',
+  'lakeside-union':         'Lakeside\nUnion',
+  'southpoint-league':      'Southpoint\nLeague',
+};
+
+// Physical terrain colours (tint-off mode).
 const TERRAIN_COLOR = {
-  ocean:      [34, 84, 128],
-  polar:      [222, 228, 234],
-  grassland:  [104, 134, 76],
-  forest:     [62, 96, 58],
-  desert:     [200, 172, 112],
-  mountain:   [140, 122, 96],
-  industrial: [82, 76, 88],
-  urban:      [98, 80, 106],
-  coastal:    [80, 142, 152],
+  ocean:      [30, 80, 130],
+  polar:      [215, 228, 236],
+  grassland:  [100, 135, 72],
+  forest:     [58, 92, 52],
+  desert:     [195, 168, 105],
+  mountain:   [138, 120, 92],
+  industrial: [78, 72, 86],
+  urban:      [95, 78, 102],
+  coastal:    [75, 138, 148],
 };
 
-const OCEAN = [30, 74, 116];
-const RIVERS = [
-  [[-120, 55], [-110, 40], [-95, 28], [-88, 12], [-92, -4]],
-  [[-30, 48], [-18, 34], [-10, 18], [-14, 2], [-6, -14]],
-  [[60, 40], [72, 26], [80, 10], [76, -8], [84, -22]],
-  [[10, -30], [22, -42], [34, -54], [30, -66]],
-];
-
-// ── Value-noise (fbm) for painterly texture, no external deps ─────────────────
+// ── Value-noise (fbm) – no deps ───────────────────────────────────────────────
 function makeNoise(seed) {
+  const s = (seed * 982451653) >>> 0;
   function hash(x, y) {
-    let n = x * 374761393 + y * 668265263 + seed * 982451653;
-    n = (n ^ (n >> 13)) * 1274126177;
-    return ((n ^ (n >> 16)) >>> 0) / 4294967295;
+    let n = (x * 374761393) ^ (y * 668265263) ^ s;
+    n = Math.imul(n ^ (n >>> 13), 1274126177);
+    return ((n ^ (n >>> 16)) >>> 0) / 4294967295;
   }
-  const smooth = t => t * t * (3 - 2 * t);
+  function lerp(a, b, t) { const u = t * t * (3 - 2 * t); return a + (b - a) * u; }
   function vnoise(x, y) {
     const xi = Math.floor(x), yi = Math.floor(y);
     const xf = x - xi, yf = y - yi;
-    const tl = hash(xi, yi), tr = hash(xi + 1, yi);
-    const bl = hash(xi, yi + 1), br = hash(xi + 1, yi + 1);
-    const u = smooth(xf), v = smooth(yf);
-    return (tl * (1 - u) + tr * u) * (1 - v) + (bl * (1 - u) + br * u) * v;
+    return lerp(
+      lerp(hash(xi, yi), hash(xi + 1, yi), xf),
+      lerp(hash(xi, yi + 1), hash(xi + 1, yi + 1), xf),
+      yf);
   }
-  return function (x, y) {
+  return (x, y, oct = 4) => {
     let f = 0, amp = 0.5, fr = 1;
-    for (let o = 0; o < 4; o++) { f += vnoise(x * fr, y * fr) * amp; fr *= 2; amp *= 0.5; }
+    for (let o = 0; o < oct; o++) { f += vnoise(x * fr, y * fr) * amp; fr *= 2.1; amp *= 0.48; }
     return f;
   };
 }
 
 export async function initGlobe(container, config) {
   const zones = await fetch('data/territories.json').then(r => r.json());
-  const COLS = config.hex.columns;
-  const ROWS = config.hex.rows;
+  const COLS = config.hex.columns;   // 32
+  const ROWS = config.hex.rows;      // 37
   const dLng = 360 / COLS;
   const dLat = 180 / ROWS;
 
-  // ── Hex ↔ geo mapping ───────────────────────────────────────────────────────
+  // ── Hex ↔ geographic mapping ──────────────────────────────────────────────
   function hexCenter(col, row) {
     const lng = -180 + (col + 0.5 * (row % 2) + 0.5) * dLng;
-    let lat = 90 - (row + 0.5) * dLat;
-    lat = Math.max(-89.9, Math.min(89.9, lat));
-    return [lng, lat];
+    return [lng, Math.max(-89.9, Math.min(89.9, 90 - (row + 0.5) * dLat))];
   }
+
+  // Return the 6 vertex [lng, lat] positions of a pointy-top hex.
   function hexPolygon(col, row) {
     const [clng, clat] = hexCenter(col, row);
-    const Sx = dLng / Math.sqrt(3);
-    const Sy = dLat / 1.5;
+    const Sx = dLng / Math.sqrt(3);  // half-width in longitude degrees
+    const Sy = dLat / 1.5;           // half-height in latitude degrees
     const ring = [];
     for (let i = 0; i < 6; i++) {
       const a = (Math.PI / 180) * (60 * i - 30);
-      let lat = Math.max(-90, Math.min(90, clat + Sy * Math.sin(a)));
-      ring.push([clng + Sx * Math.cos(a), lat]);
+      ring.push([clng + Sx * Math.cos(a),
+                 Math.max(-90, Math.min(90, clat + Sy * Math.sin(a)))]);
     }
     return ring;
   }
 
-  // ── Territory lookup ──────────────────────────────────────────────────────────
+  // ── Territory lookup ────────────────────────────────────────────────────────
   const lookup = new Map();
   for (let row = 0; row < ROWS; row++) {
     for (let col = 0; col < COLS; col++) {
       let entry = { terrain: 'ocean', faction: null };
       for (const z of zones) {
-        if (row >= z.rMin && row <= z.rMax && col >= z.cMin && col <= z.cMax) {
+        if (row >= z.rMin && row <= z.rMax && col >= z.cMin && col <= z.cMax)
           entry = { terrain: z.terrain, faction: z.faction || null };
-        }
       }
       lookup.set(`${col},${row}`, entry);
     }
   }
 
-  // ── Texture generation (equirectangular, baked once) ─────────────────────────
-  const TW = 2048, TH = 1024;
+  // ── Faction centroids (for labels) ────────────────────────────────────────
+  const factionCentroids = new Map();
+  for (const fk of Object.keys(FACTION_COLOR)) {
+    let slng = 0, slat = 0, n = 0;
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        if (lookup.get(`${col},${row}`).faction === fk) {
+          const [lng, lat] = hexCenter(col, row);
+          slng += lng; slat += lat; n++;
+        }
+      }
+    }
+    if (n > 0) factionCentroids.set(fk, [slng / n, slat / n]);
+  }
+
+  // ── Texture baking ──────────────────────────────────────────────────────────
+  const TW = 4096, TH = 2048;
   const lngToX = lng => ((lng + 180) / 360) * TW;
   const latToY = lat => ((90 - lat) / 180) * TH;
-  const noise = makeNoise(73);
-  const mtnNoise = makeNoise(131);
 
-  function neighbourKey(col, row, dir) {
-    const even = row % 2 === 0;
-    const D = even
-      ? { right: [1, 0], dl: [-1, 1], dr: [0, 1] }
-      : { right: [1, 0], dl: [0, 1], dr: [1, 1] };
-    const [dc, dr] = D[dir];
-    return [col + dc, row + dr];
+  const noiseA = makeNoise(73);
+  const noiseB = makeNoise(131);
+  const noiseC = makeNoise(47);
+
+  // Per-hex colour with individual noise variation (makes each hex visually distinct).
+  function hexBaseColor(col, row, rgb) {
+    const n = noiseA(col * 1.5, row * 1.5, 2);
+    const v = 0.82 + 0.38 * n;
+    return rgb.map(c => Math.min(255, Math.round(c * v)));
   }
 
   function fillHex(ctx, col, row, rgb) {
+    const [r, g, b] = hexBaseColor(col, row, rgb);
     const ring = hexPolygon(col, row);
     ctx.beginPath();
     ring.forEach(([lng, lat], i) => {
@@ -128,60 +147,148 @@ export async function initGlobe(container, config) {
       i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
     });
     ctx.closePath();
-    ctx.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
     ctx.fill();
   }
+
+  // Correct neighbour → shared-edge mapping for odd-r pointy-top grid.
+  // Vertex winding order (from hexPolygon, 60*i-30, clockwise in screen space):
+  //   0=upper-right, 1=lower-right, 2=bottom, 3=lower-left, 4=upper-left, 5=top
+  // Shared edges:
+  //   right   → edge [0, 1]
+  //   lower-r → edge [1, 2]
+  //   lower-l → edge [2, 3]
+  function forwardNeighbours(col, row) {
+    const odd = row % 2 === 1;
+    return [
+      { nc: col + 1, nr: row,     ea: 0, eb: 1 },          // E
+      { nc: col + (odd ? 1 : 0), nr: row + 1, ea: 1, eb: 2 }, // SE
+      { nc: col + (odd ? 0 : -1), nr: row + 1, ea: 2, eb: 3 }, // SW
+    ];
+  }
+
+  // Rivers defined as [lng, lat] waypoints, flowing from highlands toward ocean.
+  const RIVERS = [
+    // Stoneview mountains → Eastern Sea
+    [[112.5, 4.9], [118.1, 0], [135, -4.9], [140.6, -9.7], [152, -14]],
+    // Northreach highlands → Cerulean Sea
+    [[-78.75, 53.5], [-73.1, 48.6], [-56.25, 43.8], [-50.6, 38.9], [-33.75, 34.1]],
+    // Greenvale heartland → Silvermere Bay
+    [[-22.5, 14.6], [-33.75, 4.9], [-33.75, -4.9], [-39.4, -19.5], [-39.4, -29.2]],
+    // Duneward desert → western ocean
+    [[-106.9, 19.5], [-112.5, 4.9], [-118.1, 0], [-118.1, -14.6]],
+  ];
 
   function buildTexture(political) {
     const cv = document.createElement('canvas');
     cv.width = TW; cv.height = TH;
-    const ctx = cv.getContext('2d');
+    const ctx = cv.getContext('2d', { willReadFrequently: true });
 
-    // Ocean base.
-    ctx.fillStyle = `rgb(${OCEAN[0]},${OCEAN[1]},${OCEAN[2]})`;
+    // ── Ocean base with subtle depth banding ──────────────────────────────
+    const oceanGrad = ctx.createLinearGradient(0, 0, 0, TH);
+    oceanGrad.addColorStop(0,   '#1a4e82');
+    oceanGrad.addColorStop(0.3, '#1e5490');
+    oceanGrad.addColorStop(0.7, '#18487e');
+    oceanGrad.addColorStop(1,   '#123860');
+    ctx.fillStyle = oceanGrad;
     ctx.fillRect(0, 0, TW, TH);
 
-    // Land/terrain hexes.
+    // ── Land hex fills (each with per-hex noise variation) ──────────────
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
         const d = lookup.get(`${col},${row}`);
         if (d.terrain === 'ocean') continue;
-        let rgb;
-        if (political && d.faction) rgb = FACTION_COLOR[d.faction] || TERRAIN_COLOR.grassland;
-        else rgb = TERRAIN_COLOR[d.terrain] || TERRAIN_COLOR.grassland;
-        fillHex(ctx, col, row, rgb);
+        const rgb = (political && d.faction) ? FACTION_COLOR[d.faction] : TERRAIN_COLOR[d.terrain];
+        fillHex(ctx, col, row, rgb || TERRAIN_COLOR.grassland);
       }
     }
 
-    // Painterly noise modulation over the whole sphere (breaks up flat fills).
-    const img = ctx.getImageData(0, 0, TW, TH);
-    const px = img.data;
+    // ── Per-pixel noise overlay (texture variation, avoids uniform blobs) ─
+    const imgData = ctx.getImageData(0, 0, TW, TH);
+    const px = imgData.data;
     for (let y = 0; y < TH; y++) {
       for (let x = 0; x < TW; x++) {
         const i = (y * TW + x) * 4;
-        const isWater = px[i] < 60 && px[i + 2] > 90 && px[i + 1] < 130;
-        const n = noise(x * 0.05, y * 0.05) * 0.6 + noise(x * 0.012, y * 0.012) * 0.4;
-        let f = 0.82 + 0.36 * n;
-        if (isWater) {
-          // gentle depth banding for the seas
-          const w = 0.88 + 0.18 * noise(x * 0.02 + 50, y * 0.02 + 50);
-          f = w;
+        const isOcean = px[i + 2] > 110 && px[i] < 80;
+        const nx = x / TW, ny = y / TH;
+        if (isOcean) {
+          // Ocean: gentle luminance variation for depth.
+          const w = 0.9 + 0.2 * noiseA(nx * 30, ny * 15, 3);
+          px[i] = Math.min(255, px[i] * w);
+          px[i+1] = Math.min(255, px[i+1] * w);
+          px[i+2] = Math.min(255, px[i+2] * w);
         } else {
-          // speckle for a hand-drawn land feel
-          const sp = noise(x * 0.35, y * 0.35);
-          f *= 0.94 + 0.12 * sp;
+          // Land: painterly multi-octave variation.
+          const n = noiseB(nx * 80, ny * 80, 3) * 0.5 + noiseC(nx * 20, ny * 20, 2) * 0.5;
+          const v = 0.85 + 0.30 * n;
+          px[i] = Math.min(255, px[i] * v);
+          px[i+1] = Math.min(255, px[i+1] * v);
+          px[i+2] = Math.min(255, px[i+2] * v);
         }
-        px[i] = Math.min(255, px[i] * f);
-        px[i + 1] = Math.min(255, px[i + 1] * f);
-        px[i + 2] = Math.min(255, px[i + 2] * f);
       }
     }
-    ctx.putImageData(img, 0, 0);
+    ctx.putImageData(imgData, 0, 0);
 
-    // Rivers.
-    ctx.strokeStyle = 'rgba(70,120,170,0.8)';
-    ctx.lineWidth = 2.5;
+    // ── Hex grid outlines (thin, dark – shows the hex character) ─────────
+    ctx.strokeStyle = 'rgba(0,0,0,0.28)';
+    ctx.lineWidth = 2;
     ctx.lineJoin = 'round';
+    ctx.beginPath();
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const d = lookup.get(`${col},${row}`);
+        if (d.terrain === 'ocean') continue; // skip ocean hexes
+        const ring = hexPolygon(col, row);
+        ring.forEach(([lng, lat], i) => {
+          const x = lngToX(lng), y = latToY(lat);
+          i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+      }
+    }
+    ctx.stroke();
+
+    // ── Coastlines: dark stroke on land hexes bordering ocean ────────────
+    ctx.strokeStyle = 'rgba(20, 30, 40, 0.6)';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (let row = 0; row < ROWS; row++) {
+      for (let col = 0; col < COLS; col++) {
+        const me = lookup.get(`${col},${row}`);
+        if (me.terrain === 'ocean') continue;
+        const ring = hexPolygon(col, row);
+        for (const { nc, nr, ea, eb } of forwardNeighbours(col, row)) {
+          const nd = lookup.get(`${nc},${nr}`);
+          if (!nd || nd.terrain === 'ocean') {
+            ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
+            ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
+          }
+        }
+        // Also check backward edges for coastlines at boundary hexes
+        const odd = row % 2 === 1;
+        const backward = [
+          { nc: col - 1, nr: row },
+          { nc: col + (odd ? 0 : -1), nr: row - 1 },
+          { nc: col + (odd ? 1 : 0), nr: row - 1 },
+        ];
+        const backEdges = [[3, 4], [4, 5], [5, 0]];
+        backward.forEach(({ nc, nr }, idx) => {
+          const nd = lookup.get(`${nc},${nr}`);
+          if (!nd || nd.terrain === 'ocean') {
+            const [ea, eb] = backEdges[idx];
+            ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
+            ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
+          }
+        });
+      }
+    }
+    ctx.stroke();
+
+    // ── Rivers ────────────────────────────────────────────────────────────
+    ctx.strokeStyle = 'rgba(60, 130, 195, 0.82)';
+    ctx.lineWidth = 6;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     for (const r of RIVERS) {
       ctx.beginPath();
       r.forEach(([lng, lat], i) => {
@@ -191,83 +298,106 @@ export async function initGlobe(container, config) {
       ctx.stroke();
     }
 
-    // Mountain carets on mountain terrain.
-    ctx.strokeStyle = 'rgba(60,48,36,0.6)';
-    ctx.lineWidth = 1.4;
+    // ── Mountain carets ───────────────────────────────────────────────────
+    ctx.strokeStyle = 'rgba(50, 40, 28, 0.72)';
+    ctx.lineWidth = 2.5;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
     for (let row = 0; row < ROWS; row++) {
       for (let col = 0; col < COLS; col++) {
         if (lookup.get(`${col},${row}`).terrain !== 'mountain') continue;
         const [lng, lat] = hexCenter(col, row);
         const x = lngToX(lng), y = latToY(lat);
-        const s = 6 + 4 * mtnNoise(col, row);
+        const s = 18 + 10 * noiseB(col * 1.7, row * 1.7, 1);
         ctx.beginPath();
-        ctx.moveTo(x - s, y + s * 0.6);
-        ctx.lineTo(x, y - s * 0.8);
-        ctx.lineTo(x + s, y + s * 0.6);
+        ctx.moveTo(x - s, y + s * 0.55);
+        ctx.lineTo(x,     y - s * 0.75);
+        ctx.lineTo(x + s, y + s * 0.55);
         ctx.stroke();
       }
     }
 
-    // Coastlines: outline every land hex edge that borders ocean (subtle).
-    ctx.strokeStyle = 'rgba(20,30,40,0.35)';
-    ctx.lineWidth = 1.2;
-    for (let row = 0; row < ROWS; row++) {
-      for (let col = 0; col < COLS; col++) {
-        const me = lookup.get(`${col},${row}`);
-        if (me.terrain === 'ocean') continue;
-        const ring = hexPolygon(col, row);
-        const edgeFor = { right: [0, 1], dl: [3, 4], dr: [5, 0] };
-        for (const dir of ['right', 'dl', 'dr']) {
-          const [nc, nr] = neighbourKey(col, row, dir);
-          const nd = lookup.get(`${nc},${nr}`);
-          if (!nd || nd.terrain === 'ocean') {
-            const [a, b] = edgeFor[dir];
-            ctx.beginPath();
-            ctx.moveTo(lngToX(ring[a][0]), latToY(ring[a][1]));
-            ctx.lineTo(lngToX(ring[b][0]), latToY(ring[b][1]));
-            ctx.stroke();
-          }
-        }
-      }
-    }
-
-    // Country borders — thick white lines between differing factions (political only).
+    // ── Faction borders (thick white dashed, all in one stroke call) ──────
     if (political) {
-      ctx.strokeStyle = 'rgba(245,245,240,0.92)';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([10, 6]);
+      // Softer shadow pass first.
+      ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+      ctx.lineWidth = 14;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.setLineDash([]);
+      ctx.beginPath();
       for (let row = 0; row < ROWS; row++) {
         for (let col = 0; col < COLS; col++) {
           const me = lookup.get(`${col},${row}`).faction;
           if (!me) continue;
           const ring = hexPolygon(col, row);
-          const edgeFor = { right: [0, 1], dl: [3, 4], dr: [5, 0] };
-          for (const dir of ['right', 'dl', 'dr']) {
-            const [nc, nr] = neighbourKey(col, row, dir);
-            const nd = lookup.get(`${nc},${nr}`);
-            const nf = nd ? nd.faction : null;
+          for (const { nc, nr, ea, eb } of forwardNeighbours(col, row)) {
+            const nf = lookup.get(`${nc},${nr}`)?.faction ?? null;
             if (me !== nf) {
-              const [a, b] = edgeFor[dir];
-              ctx.beginPath();
-              ctx.moveTo(lngToX(ring[a][0]), latToY(ring[a][1]));
-              ctx.lineTo(lngToX(ring[b][0]), latToY(ring[b][1]));
-              ctx.stroke();
+              ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
+              ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
             }
           }
         }
       }
+      ctx.stroke();
+
+      // White dashed border pass.
+      ctx.strokeStyle = 'rgba(245, 240, 225, 0.95)';
+      ctx.lineWidth = 8;
+      ctx.setLineDash([22, 10]);
+      ctx.lineDashOffset = 0;
+      ctx.beginPath();
+      for (let row = 0; row < ROWS; row++) {
+        for (let col = 0; col < COLS; col++) {
+          const me = lookup.get(`${col},${row}`).faction;
+          if (!me) continue;
+          const ring = hexPolygon(col, row);
+          for (const { nc, nr, ea, eb } of forwardNeighbours(col, row)) {
+            const nf = lookup.get(`${nc},${nr}`)?.faction ?? null;
+            if (me !== nf) {
+              ctx.moveTo(lngToX(ring[ea][0]), latToY(ring[ea][1]));
+              ctx.lineTo(lngToX(ring[eb][0]), latToY(ring[eb][1]));
+            }
+          }
+        }
+      }
+      ctx.stroke();
       ctx.setLineDash([]);
     }
+
+    // ── Polar ice caps – large, soft, radial gradient ────────────────────
+    // North cap: centered at top edge of texture.
+    const capNPx = TH * 0.22; // extends ~22% of image height from top
+    const gnCap = ctx.createRadialGradient(TW / 2, 0, 0, TW / 2, 0, capNPx);
+    gnCap.addColorStop(0,    'rgba(248,252,255,1)');
+    gnCap.addColorStop(0.45, 'rgba(235,245,252,0.92)');
+    gnCap.addColorStop(0.72, 'rgba(215,232,244,0.72)');
+    gnCap.addColorStop(0.88, 'rgba(200,220,236,0.40)');
+    gnCap.addColorStop(1,    'rgba(190,210,228,0)');
+    ctx.fillStyle = gnCap;
+    ctx.fillRect(0, 0, TW, capNPx * 1.1);
+
+    // South cap: centered at bottom edge.
+    const capSPx = TH * 0.14;
+    const gsCap = ctx.createRadialGradient(TW / 2, TH, 0, TW / 2, TH, capSPx);
+    gsCap.addColorStop(0,    'rgba(248,252,255,1)');
+    gsCap.addColorStop(0.5,  'rgba(235,245,252,0.85)');
+    gsCap.addColorStop(0.8,  'rgba(215,232,244,0.50)');
+    gsCap.addColorStop(1,    'rgba(200,220,236,0)');
+    ctx.fillStyle = gsCap;
+    ctx.fillRect(0, TH - capSPx * 1.1, TW, capSPx * 1.1);
 
     const tex = new THREE.CanvasTexture(cv);
     tex.anisotropy = 8;
     return tex;
   }
 
+  // Build both textures (blocking, ~1-2s, done once).
   const texPolitical = buildTexture(true);
-  const texTerrain = buildTexture(false);
+  const texTerrain   = buildTexture(false);
 
-  // ── Three.js scene ────────────────────────────────────────────────────────────
+  // ── Three.js scene setup ────────────────────────────────────────────────────
   const canvas = document.createElement('canvas');
   canvas.id = 'globe-canvas';
   container.appendChild(canvas);
@@ -275,66 +405,80 @@ export async function initGlobe(container, config) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-  camera.position.set(0, 0, 3.1);
+  const scene  = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+  camera.position.set(0, 0, 3.0);
 
-  const material = new THREE.MeshPhongMaterial({ map: texPolitical, shininess: 4, specular: 0x222233 });
-  const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 120, 120), material);
+  // Use BasicMaterial so the baked texture renders exactly as painted.
+  const material = new THREE.MeshBasicMaterial({ map: texPolitical });
+  const sphere = new THREE.Mesh(new THREE.SphereGeometry(1, 128, 128), material);
   scene.add(sphere);
 
-  // Atmosphere rim.
-  const atmo = new THREE.Mesh(
-    new THREE.SphereGeometry(1.045, 64, 64),
-    new THREE.MeshBasicMaterial({ color: 0x4a90d0, transparent: true, opacity: 0.16,
-      side: THREE.BackSide, blending: THREE.AdditiveBlending })
-  );
+  // Thin atmosphere rim (additive blend so it glows).
+  const atmoMat = new THREE.ShaderMaterial({
+    transparent: true,
+    side: THREE.BackSide,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    uniforms: { color: { value: new THREE.Color(0x5aaade) } },
+    vertexShader: `
+      varying float fresnel;
+      void main() {
+        vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+        vec3 n = normalize(normalMatrix * normal);
+        fresnel = 1.0 - abs(dot(n, vec3(0,0,1)));
+        gl_Position = projectionMatrix * mvPos;
+      }`,
+    fragmentShader: `
+      uniform vec3 color;
+      varying float fresnel;
+      void main() {
+        float f = pow(fresnel, 2.5);
+        gl_FragColor = vec4(color * f, f * 0.45);
+      }`,
+  });
+  const atmo = new THREE.Mesh(new THREE.SphereGeometry(1.06, 64, 64), atmoMat);
   scene.add(atmo);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.95));
-  const dir = new THREE.DirectionalLight(0xfff4e0, 0.55);
-  dir.position.set(-1, 0.7, 1.4);
-  scene.add(dir);
-
-  // ── lng/lat → 3D (matches Three's equirectangular UV mapping) ─────────────────
+  // ── lng/lat → 3D point on unit sphere (matching Three's SphereGeometry UV) ─
   function lnglatToVec3(lng, lat, R = 1) {
-    const phi = (90 - lat) * Math.PI / 180;
-    const theta = (lng + 180) * Math.PI / 180;
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (lng + 180) * (Math.PI / 180);
     return new THREE.Vector3(
       -R * Math.sin(phi) * Math.cos(theta),
-      R * Math.cos(phi),
-      R * Math.sin(phi) * Math.sin(theta)
-    );
+       R * Math.cos(phi),
+       R * Math.sin(phi) * Math.sin(theta));
   }
-  // rotation.y that brings a given longitude to the front (+Z, facing camera)
-  const frontRotationFor = lng => Math.PI / 2 - (lng + 180) * Math.PI / 180;
 
-  // Start centred on the populated mid-continent.
-  sphere.rotation.y = frontRotationFor(-20);
+  // Rotation.y that places a given longitude facing the camera (+Z axis).
+  function yRotFor(lng) {
+    return Math.PI / 2 - (lng + 180) * Math.PI / 180;
+  }
+  sphere.rotation.y = yRotFor(-30); // start centred on main continent
 
-  let width, height;
+  let width = 0, height = 0;
+
   function resize() {
-    const rect = container.getBoundingClientRect();
-    width = rect.width; height = rect.height;
+    const r = container.getBoundingClientRect();
+    width = r.width; height = r.height;
     renderer.setSize(width, height, false);
     camera.aspect = width / height;
     camera.updateProjectionMatrix();
     renderScene();
   }
 
-  // ── Pins (projected DOM layer) ────────────────────────────────────────────────
+  // ── Pin layer (DOM, projected) ────────────────────────────────────────────
   const pinLayer = document.createElement('div');
   pinLayer.id = 'pin-layer';
   container.appendChild(pinLayer);
+
   const TYPE_COLORS = { location: '#4a9eff', faction: '#e8a030', character: '#50c878' };
   let pins = [];
 
   function setPins(pinData, onClick) {
     pinLayer.innerHTML = '';
     pins = pinData.map(pin => {
-      const col = parseInt(pin.hexAddress.slice(0, 2), 10);
-      const row = parseInt(pin.hexAddress.slice(2, 4), 10);
-      const [lng, lat] = hexCenter(col, row);
+      const [col, row] = [parseInt(pin.hexAddress.slice(0, 2)), parseInt(pin.hexAddress.slice(2, 4))];
       const el = document.createElement('div');
       el.className = `pin pin-${pin.type}`;
       const c = TYPE_COLORS[pin.type] || '#fff';
@@ -343,58 +487,88 @@ export async function initGlobe(container, config) {
         `<div class="pin-label">${pin.label}</div>`;
       el.addEventListener('click', e => { e.stopPropagation(); onClick(pin); });
       pinLayer.appendChild(el);
-      return { el, local: lnglatToVec3(lng, lat, 1) };
+      return { el, local: lnglatToVec3(...hexCenter(col, row), 1) };
     });
-    updatePins();
+    updatePinPositions();
   }
 
+  // ── Faction labels (DOM, projected from territory centroids) ──────────────
+  const labelLayer = document.createElement('div');
+  labelLayer.id = 'label-layer';
+  container.appendChild(labelLayer);
+
+  const factionLabels = [];
+  for (const [fk, [lng, lat]] of factionCentroids) {
+    const name = FACTION_LABEL[fk] || fk;
+    const el = document.createElement('div');
+    el.className = 'faction-label';
+    el.textContent = name; // newlines via CSS white-space
+    labelLayer.appendChild(el);
+    factionLabels.push({ el, local: lnglatToVec3(lng, lat, 1) });
+  }
+
+  // ── Project a local sphere-surface point to screen ─────────────────────────
   const _v = new THREE.Vector3();
-  function updatePins() {
+  function projectLocal(local) {
+    _v.copy(local).applyMatrix4(sphere.matrixWorld);
+    const facing = _v.clone().normalize().dot(new THREE.Vector3(0, 0, 1));
+    if (facing < 0.1) return null;
+    const p = _v.clone().project(camera);
+    return { x: (p.x * 0.5 + 0.5) * width, y: (-p.y * 0.5 + 0.5) * height };
+  }
+
+  function updatePinPositions() {
     sphere.updateMatrixWorld();
     for (const { el, local } of pins) {
-      _v.copy(local).applyMatrix4(sphere.matrixWorld);
-      // Visible only on the near hemisphere (facing the camera at +Z).
-      const facing = _v.clone().normalize().dot(camera.position.clone().normalize());
-      if (facing < 0.12) { el.style.display = 'none'; continue; }
-      const p = _v.clone().project(camera);
+      const p = projectLocal(local);
+      if (!p) { el.style.display = 'none'; continue; }
       el.style.display = '';
-      el.style.left = ((p.x * 0.5 + 0.5) * width) + 'px';
-      el.style.top = ((-p.y * 0.5 + 0.5) * height) + 'px';
+      el.style.left = p.x + 'px';
+      el.style.top  = p.y + 'px';
+    }
+    for (const { el, local } of factionLabels) {
+      const p = projectLocal(local);
+      if (!p) { el.style.display = 'none'; continue; }
+      el.style.display = '';
+      el.style.left = p.x + 'px';
+      el.style.top  = p.y + 'px';
     }
   }
 
   function renderScene() {
     renderer.render(scene, camera);
-    updatePins();
+    updatePinPositions();
   }
 
-  // ── Interaction: east-west drag, wheel zoom, animated panTo ──────────────────
+  // ── Interaction: east-west drag only, mouse wheel zoom ───────────────────
   let dragging = false, lastX = 0;
+
   canvas.addEventListener('pointerdown', e => {
-    dragging = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId);
+    dragging = true;
+    lastX = e.clientX;
+    canvas.setPointerCapture(e.pointerId);
   });
   canvas.addEventListener('pointermove', e => {
     if (!dragging) return;
-    const dx = e.clientX - lastX;
+    sphere.rotation.y += (e.clientX - lastX) * 0.005;
     lastX = e.clientX;
-    sphere.rotation.y += dx * 0.005; // east-west only
     renderScene();
   });
   canvas.addEventListener('pointerup', e => {
-    dragging = false; try { canvas.releasePointerCapture(e.pointerId); } catch {}
+    dragging = false;
+    try { canvas.releasePointerCapture(e.pointerId); } catch {}
   });
 
   canvas.addEventListener('wheel', e => {
     e.preventDefault();
-    camera.position.z *= e.deltaY < 0 ? 0.92 : 1.08;
-    camera.position.z = Math.max(1.45, Math.min(5.5, camera.position.z));
+    camera.position.z *= e.deltaY < 0 ? 0.92 : 1.09;
+    camera.position.z = Math.max(1.4, Math.min(5.5, camera.position.z));
     renderScene();
   }, { passive: false });
 
-  function panTo(lng /*, lat ignored: east-west only */) {
-    let target = frontRotationFor(lng);
+  function panTo(lng) {
+    let target = yRotFor(lng);
     const cur = sphere.rotation.y;
-    // choose nearest equivalent angle
     target += Math.round((cur - target) / (2 * Math.PI)) * 2 * Math.PI;
     const t0 = performance.now(), dur = 700;
     (function step(now) {
@@ -421,9 +595,7 @@ export async function initGlobe(container, config) {
     setPins,
     panTo,
     panToHex(address) {
-      const col = parseInt(address.slice(0, 2), 10);
-      const row = parseInt(address.slice(2, 4), 10);
-      panTo(hexCenter(col, row)[0]);
+      panTo(hexCenter(parseInt(address.slice(0, 2)), parseInt(address.slice(2, 4)))[0]);
     },
     invalidateSize: resize,
   };
