@@ -177,6 +177,7 @@ export function initWiki(map, config) {
     const textNodes = [];
     while (walker.nextNode()) textNodes.push(walker.currentNode);
 
+    const linked = new Set(); // only link the first mention of each entry
     for (const node of textNodes) {
       const text = node.nodeValue;
       re.lastIndex = 0;
@@ -186,13 +187,18 @@ export function initWiki(map, config) {
       let last = 0, m;
       while ((m = re.exec(text))) {
         const entry = byTitle.get(m[0].toLowerCase());
-        if (!entry) continue;
+        const entryKey = entry ? `${entry.type}|${entry.slug}` : null;
         if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
-        const a = document.createElement('a');
-        a.className = 'wiki-xref';
-        a.textContent = m[0];
-        a.addEventListener('click', () => wiki.open(entry.type, entry.slug, entry.title));
-        frag.appendChild(a);
+        if (entry && !linked.has(entryKey)) {
+          linked.add(entryKey);
+          const a = document.createElement('a');
+          a.className = 'wiki-xref';
+          a.textContent = m[0];
+          a.addEventListener('click', () => wiki.open(entry.type, entry.slug, entry.title));
+          frag.appendChild(a);
+        } else {
+          frag.appendChild(document.createTextNode(m[0])); // already linked / unknown → plain text
+        }
         last = m.index + m[0].length;
       }
       if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
